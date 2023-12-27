@@ -9,24 +9,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup PHP with PECL extension
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          extensions: zip
+
       - name: Composer install
         uses: php-actions/composer@v6
 
       - name: PHPUnit
         uses: php-actions/phpunit@v3
         with:
-          php_version: 8.1
+          php_version: 8.2
           configuration: phpunit.xml.dist
 
       - name: PHPStan
         uses: php-actions/phpstan@v3
         with:
-          php_version: 8.1
+          php_version: 8.2
           path: src/
 
       - name: PHP Code Sniffer
         uses: php-actions/phpcs@v1
         with:
-          php_version: 8.1
+          php_version: 8.2
           path: src/
           standard: phpcs.xml.dist
