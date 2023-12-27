@@ -57,7 +57,11 @@ class Native extends CsvAdapter
             rewind($stream);
         }
         $headers = null;
-        while (!feof($stream) && ($line = fgetcsv($stream, null, $this->separator, $this->enclosure, $this->escape)) !== false) {
+        while (
+            !feof($stream)
+            &&
+            ($line = fgetcsv($stream, null, $this->separator, $this->enclosure, $this->escape)) !== false
+        ) {
             if ($this->assoc) {
                 if ($headers === null) {
                     $headers = $line;
