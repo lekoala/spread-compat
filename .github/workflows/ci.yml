@@ -17,7 +17,7 @@ jobs:
         uses: php-actions/composer@v6
         with:
           php_version: 8.2
-          php_extensions: zip
+          php_extensions: zip, gd
 
       - name: PHPUnit
         uses: php-actions/phpunit@v3
