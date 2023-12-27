@@ -7,6 +7,7 @@ namespace LeKoala\SpreadCompat\Xlsx;
 use Generator;
 use RuntimeException;
 use OpenSpout\Common\Entity\Row;
+use OpenSpout\Writer\AutoFilter;
 use OpenSpout\Reader\XLSX\Reader;
 use OpenSpout\Writer\XLSX\Writer;
 use OpenSpout\Writer\XLSX\Entity\SheetView;
@@ -73,15 +74,41 @@ class OpenSpout extends XlsxAdapter
      */
     protected function setSheetView(Writer $writer)
     {
-        $sheetView = new SheetView();
         if ($this->freezePane) {
+            $sheetView = new SheetView();
             $row = (int)substr($this->freezePane, 1, 1);
             if ($row > 0) {
                 $sheetView->setFreezeRow($row);
                 $sheetView->setFreezeColumn(substr($this->freezePane, 0, 1));
             }
+            $writer->getCurrentSheet()->setSheetView($sheetView);
         }
-        $writer->getCurrentSheet()->setSheetView($sheetView);
+        if ($this->autofilter) {
+            $c = $this->autofilterCoords();
+            $autoFilter = new AutoFilter($c[0], $c[1], $c[2], $c[3]);
+            $writer->getCurrentSheet()->setAutoFilter($autoFilter);
+        }
+    }
+
+    protected function autofilterCoords(): array
+    {
+        $parts = explode(":", $this->autofilter ?? "");
+        $from = $parts[0];
+        $to = $parts[1];
+
+        $letters = range('A', 'Z');
+
+        $fromColumnIndex = array_search((int)substr($from, 0, 1), $letters);
+        $fromRow = (int)substr($from, 1, 1);
+        $toColumnIndex = array_search((int)substr($to, 0, 1), $letters);
+        $toRow = (int)substr($to, 1, 1);
+
+        return [
+            $fromColumnIndex,
+            $fromRow,
+            $toColumnIndex,
+            $toRow,
+        ];
     }
 
     public function writeString(iterable $data, ...$opts): string

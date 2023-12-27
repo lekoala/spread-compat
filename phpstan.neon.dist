@@ -5,6 +5,7 @@ parameters:
 
     reportUnmatchedIgnoredErrors: true
     ignoreErrors:
+        - "#(.*)return type has no value type specified in iterable type array#"
         - "#(.*)with no value type specified in iterable type iterable#"
         - "#(.*)has parameter \\$opts with no type specified.#"
         - "#(.*)array_combine expects(.*)#"
