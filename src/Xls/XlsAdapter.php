@@ -16,6 +16,12 @@ abstract class XlsAdapter implements SpreadInterface
     public function configure(...$opts): void
     {
         foreach ($opts as $k => $v) {
+            if (is_numeric($k)) {
+                throw new Exception("Invalid key");
+            }
+            if (!property_exists($this, $k)) {
+                continue;
+            }
             $this->$k = $v;
         }
     }

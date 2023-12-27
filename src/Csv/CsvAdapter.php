@@ -44,6 +44,9 @@ abstract class CsvAdapter implements SpreadInterface
             if (is_numeric($k)) {
                 throw new Exception("Invalid key");
             }
+            if (!property_exists($this, $k)) {
+                continue;
+            }
             $this->$k = $v;
         }
     }
