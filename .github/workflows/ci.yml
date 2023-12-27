@@ -3,6 +3,7 @@ name: CI
 on: [push]
 
 env:
+  ACTION_PHP_VERSION: 8.2
   ACTION_PHP_EXTENSIONS: zip
 
 jobs:
@@ -14,6 +15,9 @@ jobs:
 
       - name: Composer install
         uses: php-actions/composer@v6
+        with:
+          php_version: 8.2
+          php_extensions: zip
 
       - name: PHPUnit
         uses: php-actions/phpunit@v3
