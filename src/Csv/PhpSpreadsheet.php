@@ -6,6 +6,7 @@ namespace LeKoala\SpreadCompat\Csv;
 
 use Generator;
 use RuntimeException;
+use LeKoala\SpreadCompat\SpreadCompat;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Reader\Csv as ReaderCsv;
 use PhpOffice\PhpSpreadsheet\Writer\Csv as WriterCsv;
@@ -95,11 +96,7 @@ class PhpSpreadsheet extends CsvAdapter
     public function writeString(iterable $data, ...$opts): string
     {
         $this->configure(...$opts);
-        $file = tmpfile();
-        if (!$file) {
-            throw new RuntimeException("Could not get temp file");
-        }
-        $filename = stream_get_meta_data($file)['uri'];
+        $filename = SpreadCompat::getTempFilename();
         $this->writeFile($data, $filename);
         $contents = file_get_contents($filename);
         if (!$contents) {

@@ -10,6 +10,7 @@ use OpenSpout\Common\Entity\Row;
 use OpenSpout\Writer\AutoFilter;
 use OpenSpout\Reader\XLSX\Reader;
 use OpenSpout\Writer\XLSX\Writer;
+use LeKoala\SpreadCompat\SpreadCompat;
 use OpenSpout\Writer\XLSX\Entity\SheetView;
 
 class OpenSpout extends XlsxAdapter
@@ -18,11 +19,7 @@ class OpenSpout extends XlsxAdapter
         string $contents,
         ...$opts
     ): Generator {
-        $file = tmpfile();
-        if (!$file) {
-            throw new RuntimeException("Could not get temp file");
-        }
-        $filename = stream_get_meta_data($file)['uri'];
+        $filename = SpreadCompat::getTempFilename();
         file_put_contents($filename, $contents);
         yield from $this->readFile($filename);
         unlink($filename);
@@ -113,11 +110,7 @@ class OpenSpout extends XlsxAdapter
 
     public function writeString(iterable $data, ...$opts): string
     {
-        $file = tmpfile();
-        if (!$file) {
-            throw new RuntimeException("Could not get temp file");
-        }
-        $filename = stream_get_meta_data($file)['uri'];
+        $filename = SpreadCompat::getTempFilename();
         $this->writeFile($data, $filename);
         $contents = file_get_contents($filename);
         if (!$contents) {

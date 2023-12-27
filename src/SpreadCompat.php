@@ -6,6 +6,7 @@ namespace LeKoala\SpreadCompat;
 
 use Exception;
 use Generator;
+use RuntimeException;
 
 /**
  * This class provides a static facade for adapters
@@ -54,6 +55,16 @@ class SpreadCompat
             throw new Exception("Invalid adapter $class for $filename");
         }
         return new ($class);
+    }
+
+    public static function getTempFilename(): string
+    {
+        $file = tmpfile();
+        if (!$file) {
+            throw new RuntimeException("Could not get temp file");
+        }
+        $filename = stream_get_meta_data($file)['uri'];
+        return $filename;
     }
 
     public static function read(
