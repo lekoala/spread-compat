@@ -17,6 +17,13 @@ class SpreadCompat
         if ($ext === null) {
             $ext = pathinfo($filename, PATHINFO_EXTENSION);
         }
+        $ext = strtolower($ext);
+        if ($ext === "xls") {
+            if (class_exists(\PhpOffice\PhpSpreadsheet\Worksheet\Row::class)) {
+                return 'PhpSpreadsheet';
+            }
+            throw new Exception("No adapter found");
+        }
         if (class_exists(\OpenSpout\Common\Entity\Row::class)) {
             return 'OpenSpout';
         }
@@ -43,6 +50,9 @@ class SpreadCompat
         $ext = ucfirst($ext);
         $name = self::getAdapterName($filename, $ext);
         $class = 'LeKoala\\SpreadCompat\\' . $ext . '\\' . $name;
+        if (!class_exists($class)) {
+            throw new Exception("Invalid adapter $class for $filename");
+        }
         return new ($class);
     }
 

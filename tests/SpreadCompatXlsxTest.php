@@ -12,7 +12,7 @@ use LeKoala\SpreadCompat\Xlsx\PhpSpreadsheet;
 
 class SpreadCompatXlsxTest extends TestCase
 {
-    public function testFacadeCanReadXksx()
+    public function testFacadeCanReadXlsx()
     {
         $data = iterator_to_array(SpreadCompat::read(__DIR__ . '/data/basic.xlsx'));
         $this->assertCount(1, $data);
@@ -29,6 +29,11 @@ class SpreadCompatXlsxTest extends TestCase
         $data = iterator_to_array($openSpout->readFile(__DIR__ . '/data/basic.xlsx'));
         $this->assertCount(1, $data);
         $this->assertCount(3, $data[0]);
+
+        $openSpout = new OpenSpout();
+        $data = iterator_to_array($openSpout->readFile(__DIR__ . '/data/header.xlsx', assoc: true));
+        $this->assertCount(1, $data);
+        $this->assertCount(4, $data[0]);
     }
 
     public function testOpenSpoutCanWriteXlsx()
@@ -44,7 +49,7 @@ class SpreadCompatXlsxTest extends TestCase
         $openSpout = new OpenSpout();
         $string2 = $openSpout->writeString([
             [
-                "fname", "sname", "email"
+                "firstname", "surname", "email"
             ],
             [
                 "john", "doe", "john.doe@example.com"
@@ -71,6 +76,11 @@ class SpreadCompatXlsxTest extends TestCase
         $data = iterator_to_array($PhpSpreadsheet->readFile(__DIR__ . '/data/basic.xlsx'));
         $this->assertCount(1, $data);
         $this->assertCount(3, $data[0]);
+
+        $PhpSpreadsheet = new PhpSpreadsheet();
+        $data = iterator_to_array($PhpSpreadsheet->readFile(__DIR__ . '/data/header.xlsx', assoc: true));
+        $this->assertCount(1, $data);
+        $this->assertCount(4, $data[0]);
     }
 
     public function testSpreadsheetCanWriteXlsx()
@@ -109,6 +119,11 @@ class SpreadCompatXlsxTest extends TestCase
         $data = iterator_to_array($Simple->readFile(__DIR__ . '/data/basic.xlsx'));
         $this->assertCount(1, $data);
         $this->assertCount(3, $data[0]);
+
+        $Simple = new Simple();
+        $data = iterator_to_array($Simple->readFile(__DIR__ . '/data/header.xlsx', assoc: true));
+        $this->assertCount(1, $data);
+        $this->assertCount(4, $data[0]);
     }
 
     public function testSimpleCanWriteXlsx()

@@ -39,9 +39,17 @@ class Simple extends XlsxAdapter
         if (!$xlsx) {
             throw new RuntimeException("Parse error: " . (string)SimpleXLSX::parseError());
         }
+        $headers = null;
         foreach ($xlsx->readRows() as $r) {
             if (empty($r) || $r[0] === "") {
                 continue;
+            }
+            if ($this->assoc) {
+                if ($headers === null) {
+                    $headers = $r;
+                    continue;
+                }
+                $r = array_combine($headers, $r);
             }
             yield $r;
         }
