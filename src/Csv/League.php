@@ -8,6 +8,7 @@ use Generator;
 use League\Csv\Reader;
 use League\Csv\Writer;
 use League\Csv\CharsetConverter;
+use RuntimeException;
 
 class League extends CsvAdapter
 {
@@ -29,7 +30,7 @@ class League extends CsvAdapter
         }
         if ($this->inputEncoding) {
             $encoder = (new \League\Csv\CharsetConverter())
-                ->inputEncoding($this->getInputEncoding())
+                ->inputEncoding($this->getInputEncoding() ?? mb_internal_encoding())
                 ->outputEncoding($this->getOutputEncoding() ?? mb_internal_encoding());
             $csv->addFormatter($encoder);
         }
@@ -57,6 +58,9 @@ class League extends CsvAdapter
     ): Generator {
         $this->configure(...$opts);
         $stream = fopen($filename, 'r');
+        if (!$stream) {
+            throw new RuntimeException("Failed to open $filename");
+        }
         $csv = Reader::createFromStream($stream);
         yield from $this->read($csv);
     }
@@ -82,7 +86,7 @@ class League extends CsvAdapter
         if ($this->outputEncoding) {
             $encoder = (new CharsetConverter())
                 ->inputEncoding($this->getInputEncoding() ?? mb_internal_encoding())
-                ->outputEncoding($this->getOutputEncoding());
+                ->outputEncoding($this->getOutputEncoding() ?? mb_internal_encoding());
             $csv->addFormatter($encoder);
         }
         if (!empty($this->headers)) {
@@ -111,7 +115,7 @@ class League extends CsvAdapter
         // ignore returned bytes
     }
 
-    protected function getBomString()
+    protected function getBomString(): string
     {
         return match ($this->getInputEncoding()) {
             'UTF-16BE' => Writer::BOM_UTF16_BE,

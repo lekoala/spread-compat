@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace LeKoala\SpreadCompat\Xlsx;
 
 use Generator;
-use PhpOffice\PhpSpreadsheet\Reader\Xlsx as ReaderXlsx;
+use RuntimeException;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Reader\Xlsx as ReaderXlsx;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx as WriterXlsx;
 
 class PhpSpreadsheet extends XlsxAdapter
@@ -25,7 +26,8 @@ class PhpSpreadsheet extends XlsxAdapter
             $cellIterator->setIterateOnlyExistingCells(false);
             $data = [];
             foreach ($cellIterator as $cell) {
-                $data[] = $cell->getValue();
+                $v = $cell->getValue();
+                $data[] = $v;
             }
             if (empty($data) || $data[0] === null) {
                 continue;
@@ -46,6 +48,9 @@ class PhpSpreadsheet extends XlsxAdapter
         ...$opts
     ): Generator {
         $file = tmpfile();
+        if (!$file) {
+            throw new RuntimeException("Could not get temp file");
+        }
         $filename = stream_get_meta_data($file)['uri'];
         file_put_contents($filename, $contents);
         yield from $this->readFile($filename);
@@ -82,9 +87,15 @@ class PhpSpreadsheet extends XlsxAdapter
     public function writeString(iterable $data, ...$opts): string
     {
         $file = tmpfile();
+        if (!$file) {
+            throw new RuntimeException("Could not get temp file");
+        }
         $filename = stream_get_meta_data($file)['uri'];
         $this->writeFile($data, $filename);
         $contents = file_get_contents($filename);
+        if (!$contents) {
+            $contents = "";
+        }
         unlink($filename);
         return $contents;
     }

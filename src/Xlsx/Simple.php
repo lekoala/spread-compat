@@ -21,6 +21,9 @@ class Simple extends XlsxAdapter
         ...$opts
     ): Generator {
         $file = tmpfile();
+        if (!$file) {
+            throw new RuntimeException("Could not get temp file");
+        }
         $filename = stream_get_meta_data($file)['uri'];
         file_put_contents($filename, $contents);
         yield from $this->readFile($filename);
@@ -67,9 +70,15 @@ class Simple extends XlsxAdapter
         ...$opts
     ): string {
         $file = tmpfile();
+        if (!$file) {
+            throw new RuntimeException("Could not get temp file");
+        }
         $filename = stream_get_meta_data($file)['uri'];
         $this->writeFile($data, $filename);
         $contents = file_get_contents($filename);
+        if (!$contents) {
+            $contents = "";
+        }
         unlink($filename);
         return $contents;
     }

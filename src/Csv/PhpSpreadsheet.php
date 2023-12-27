@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace LeKoala\SpreadCompat\Csv;
 
 use Generator;
-use PhpOffice\PhpSpreadsheet\Reader\Csv as ReaderCsv;
+use RuntimeException;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Reader\Csv as ReaderCsv;
 use PhpOffice\PhpSpreadsheet\Writer\Csv as WriterCsv;
 
 class PhpSpreadsheet extends CsvAdapter
@@ -15,7 +16,7 @@ class PhpSpreadsheet extends CsvAdapter
     {
         $reader = new ReaderCsv();
         if ($this->inputEncoding) {
-            $reader->setInputEncoding($this->getInputEncoding());
+            $reader->setInputEncoding($this->getInputEncoding() ?? mb_internal_encoding());
         }
         $reader->setDelimiter($this->separator);
         $reader->setEnclosure($this->enclosure);
@@ -78,7 +79,7 @@ class PhpSpreadsheet extends CsvAdapter
         $spreadsheet->getActiveSheet()->fromArray($source);
         $writer = new WriterCsv($spreadsheet);
         if ($this->outputEncoding) {
-            $writer->setOutputEncoding($this->getOutputEncoding());
+            $writer->setOutputEncoding($this->getOutputEncoding() ?? mb_internal_encoding());
         }
         $writer->setDelimiter($this->separator);
         $writer->setEnclosure($this->enclosure);
@@ -93,9 +94,15 @@ class PhpSpreadsheet extends CsvAdapter
     {
         $this->configure(...$opts);
         $file = tmpfile();
+        if (!$file) {
+            throw new RuntimeException("Could not get temp file");
+        }
         $filename = stream_get_meta_data($file)['uri'];
         $this->writeFile($data, $filename);
         $contents = file_get_contents($filename);
+        if (!$contents) {
+            $contents = "";
+        }
         unlink($filename);
         return $contents;
     }

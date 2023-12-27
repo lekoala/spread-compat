@@ -17,6 +17,9 @@ abstract class CsvAdapter implements SpreadInterface
     public ?string $outputEncoding = null;
     public bool $assoc = false;
     public bool $bom = true;
+    /**
+     * @var string[]
+     */
     public array $headers = [];
 
     public function getInputEncoding(): ?string

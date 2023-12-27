@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LeKoala\SpreadCompat\Xlsx;
 
 use Generator;
+use RuntimeException;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Reader\XLSX\Reader;
 use OpenSpout\Writer\XLSX\Writer;
@@ -17,6 +18,9 @@ class OpenSpout extends XlsxAdapter
         ...$opts
     ): Generator {
         $file = tmpfile();
+        if (!$file) {
+            throw new RuntimeException("Could not get temp file");
+        }
         $filename = stream_get_meta_data($file)['uri'];
         file_put_contents($filename, $contents);
         yield from $this->readFile($filename);
@@ -59,8 +63,11 @@ class OpenSpout extends XlsxAdapter
 
         $sheetView = new SheetView();
         if ($this->freezePane) {
-            $sheetView->setFreezeRow((int)substr($this->freezePane, 1, 1));
-            $sheetView->setFreezeColumn(substr($this->freezePane, 0, 1));
+            $row = (int)substr($this->freezePane, 1, 1);
+            if ($row > 0) {
+                $sheetView->setFreezeRow($row);
+                $sheetView->setFreezeColumn(substr($this->freezePane, 0, 1));
+            }
         }
         $writer = new Writer();
         $writer->getCurrentSheet()->setSheetView($sheetView);
@@ -71,9 +78,15 @@ class OpenSpout extends XlsxAdapter
     public function writeString(iterable $data, ...$opts): string
     {
         $file = tmpfile();
+        if (!$file) {
+            throw new RuntimeException("Could not get temp file");
+        }
         $filename = stream_get_meta_data($file)['uri'];
         $this->writeFile($data, $filename);
         $contents = file_get_contents($filename);
+        if (!$contents) {
+            $contents = "";
+        }
         unlink($filename);
         return $contents;
     }

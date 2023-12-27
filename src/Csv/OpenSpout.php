@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LeKoala\SpreadCompat\Csv;
 
 use Generator;
+use RuntimeException;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Reader\CSV\Reader;
 use OpenSpout\Writer\CSV\Writer;
@@ -16,6 +17,9 @@ class OpenSpout extends CsvAdapter
         ...$opts
     ): Generator {
         $file = tmpfile();
+        if (!$file) {
+            throw new RuntimeException("Could not get temp file");
+        }
         $filename = stream_get_meta_data($file)['uri'];
         file_put_contents($filename, $contents);
         yield from $this->readFile($filename);
@@ -32,7 +36,7 @@ class OpenSpout extends CsvAdapter
         $options->FIELD_DELIMITER = $this->separator;
         $options->FIELD_ENCLOSURE = $this->enclosure;
         if ($this->inputEncoding) {
-            $options->ENCODING = $this->getInputEncoding();
+            $options->ENCODING = $this->getInputEncoding() ?? mb_internal_encoding();
         }
         $headers = null;
         //TODO: support escape
@@ -69,9 +73,15 @@ class OpenSpout extends CsvAdapter
     {
         $this->configure(...$opts);
         $file = tmpfile();
+        if (!$file) {
+            throw new RuntimeException("Could not get temp file");
+        }
         $filename = stream_get_meta_data($file)['uri'];
         $this->writeFile($data, $filename);
         $contents = file_get_contents($filename);
+        if (!$contents) {
+            $contents = "";
+        }
         unlink($filename);
         return $contents;
     }

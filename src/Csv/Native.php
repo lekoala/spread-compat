@@ -26,18 +26,20 @@ class Native extends CsvAdapter
         }
 
         // parse rows and take into account enclosure and escaped parts
+        /** @var array<string> $data */
         $data = str_getcsv($contents, $this->eol, $this->enclosure, $this->escape);
 
         $headers = null;
         foreach ($data as $line) {
+            $row = str_getcsv($line, $this->separator, $this->enclosure, $this->escape);
             if ($this->assoc) {
                 if ($headers === null) {
-                    $headers = $line;
+                    $headers = $row;
                     continue;
                 }
-                $line = array_combine($headers, $line);
+                $row = array_combine($headers, $row);
             }
-            yield str_getcsv($line, $this->separator, $this->enclosure, $this->escape);
+            yield $row;
         }
     }
 
@@ -47,6 +49,9 @@ class Native extends CsvAdapter
     ): Generator {
         $this->configure(...$opts);
         $stream = fopen($filename, 'r');
+        if (!$stream) {
+            throw new RuntimeException("Failed to read stream");
+        }
         if (fgets($stream, 4) !== self::BOM) {
             // bom not found - rewind pointer to start of file.
             rewind($stream);
@@ -64,7 +69,12 @@ class Native extends CsvAdapter
         }
     }
 
-    protected function write($stream, iterable $data)
+    /**
+     * @param resource $stream
+     * @param iterable $data
+     * @return void
+     */
+    protected function write($stream, iterable $data): void
     {
         if ($this->bom) {
             fputs($stream, self::BOM);
@@ -83,9 +93,15 @@ class Native extends CsvAdapter
     ): string {
         $this->configure(...$opts);
         $stream = fopen('php://temp/maxmemory:' . (5 * 1024 * 1024), 'r+');
+        if (!$stream) {
+            throw new RuntimeException("Failed to read stream");
+        }
         $this->write($stream, $data);
         rewind($stream);
         $contents = stream_get_contents($stream);
+        if (!$contents) {
+            $contents = "";
+        }
         fclose($stream);
         return $contents;
     }
@@ -97,6 +113,9 @@ class Native extends CsvAdapter
     ): bool {
         $this->configure(...$opts);
         $stream = fopen($filename, 'w');
+        if (!$stream) {
+            throw new RuntimeException("Failed to read stream");
+        }
         $this->write($stream, $data);
         fclose($stream);
         return true;
@@ -119,6 +138,9 @@ class Native extends CsvAdapter
         header('Pragma: public');
 
         $stream = fopen('php://output', 'w');
+        if (!$stream) {
+            throw new RuntimeException("Failed to read stream");
+        }
         $this->write($stream, $data);
         fclose($stream);
     }
