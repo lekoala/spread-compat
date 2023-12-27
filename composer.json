@@ -6,7 +6,9 @@
         "spreadsheet",
         "excel",
         "csv",
-        "package"
+        "package",
+        "xls",
+        "xlsx"
     ],
     "license": "MIT",
     "authors": [
