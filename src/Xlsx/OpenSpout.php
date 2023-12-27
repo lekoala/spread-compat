@@ -61,6 +61,18 @@ class OpenSpout extends XlsxAdapter
             $writer->setCreator($this->creator);
         }
 
+        $writer = new Writer();
+        return $writer;
+    }
+
+    /**
+     * Call this after opening
+     *
+     * @param Writer $writer
+     * @return void
+     */
+    protected function setSheetView(Writer $writer)
+    {
         $sheetView = new SheetView();
         if ($this->freezePane) {
             $row = (int)substr($this->freezePane, 1, 1);
@@ -69,10 +81,7 @@ class OpenSpout extends XlsxAdapter
                 $sheetView->setFreezeColumn(substr($this->freezePane, 0, 1));
             }
         }
-        $writer = new Writer();
         $writer->getCurrentSheet()->setSheetView($sheetView);
-
-        return $writer;
     }
 
     public function writeString(iterable $data, ...$opts): string
@@ -99,6 +108,7 @@ class OpenSpout extends XlsxAdapter
         //TODO: encoding?
 
         $writer->openToFile($filename);
+        $this->setSheetView($writer);
         foreach ($data as $row) {
             $writer->addRow(Row::fromValues($row));
         }
@@ -114,6 +124,7 @@ class OpenSpout extends XlsxAdapter
         //TODO: encoding?
 
         $writer->openToBrowser($filename);
+        $this->setSheetView($writer);
         foreach ($data as $row) {
             $writer->addRow(Row::fromValues($row));
         }
