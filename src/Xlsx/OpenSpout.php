@@ -90,7 +90,7 @@ class OpenSpout extends XlsxAdapter
         }
     }
 
-    protected function autofilterCoords(): array
+    public function autofilterCoords(): array
     {
         $parts = explode(":", $this->autofilter ?? "");
         $from = $parts[0];
@@ -98,9 +98,9 @@ class OpenSpout extends XlsxAdapter
 
         $letters = range('A', 'Z');
 
-        $fromColumnIndex = array_search((int)substr($from, 0, 1), $letters);
+        $fromColumnIndex = array_search(substr($from, 0, 1), $letters, true);
         $fromRow = (int)substr($from, 1, 1);
-        $toColumnIndex = array_search((int)substr($to, 0, 1), $letters);
+        $toColumnIndex = array_search(substr($to, 0, 1), $letters, true);
         $toRow = (int)substr($to, 1, 1);
 
         return [

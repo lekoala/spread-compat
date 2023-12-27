@@ -55,6 +55,10 @@ class SpreadCompatXlsxTest extends TestCase
         ]);
         $this->assertStringContainsString('[Content_Types].xml', $string);
         $this->assertNotEquals($string, $string2);
+
+        $coordsOpenSpout = new OpenSpout();
+        $coordsOpenSpout->autofilter = 'A1:C1';
+        $this->assertEquals([0, 1, 2, 1], $coordsOpenSpout->autofilterCoords());
     }
 
     public function testSpreadsheetCanReadXlsx()
