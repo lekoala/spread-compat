@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LeKoala\SpreadCompat\Xls;
 
+use Exception;
 use LeKoala\SpreadCompat\SpreadInterface;
 
 abstract class XlsAdapter implements SpreadInterface

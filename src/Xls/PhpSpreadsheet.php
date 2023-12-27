@@ -15,6 +15,8 @@ class PhpSpreadsheet extends XlsAdapter
     protected function getReader(): ReaderXls
     {
         $reader = new ReaderXls();
+        // We are only interested in cell data
+        $reader->setReadDataOnly(true);
         return $reader;
     }
 

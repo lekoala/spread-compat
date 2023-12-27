@@ -23,6 +23,8 @@ class PhpSpreadsheet extends CsvAdapter
         $reader->setEscapeCharacter($this->escape);
         $reader->setSheetIndex(0);
         // $reader->setPreserveNullString(true);
+        // We are only interested in cell data
+        $reader->setReadDataOnly(true);
         return $reader;
     }
 
