@@ -2,18 +2,15 @@ name: CI
 
 on: [push]
 
+env:
+  ACTION_PHP_EXTENSIONS: zip
+
 jobs:
   build-test:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup PHP with PECL extension
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: 8.2
-          extensions: zip
 
       - name: Composer install
         uses: php-actions/composer@v6
