@@ -43,7 +43,7 @@ class SpreadCompat
         $ext = ucfirst($ext);
         $name = self::getAdapterName($filename, $ext);
         $class = 'LeKoala\\SpreadCompat\\' . $ext . '\\' . $name;
-        return new $class;
+        return new ($class);
     }
 
     public static function read(
@@ -54,7 +54,7 @@ class SpreadCompat
         if ($ext) {
             unset($opts['extension']);
         }
-        return static::getAdapter($filename, $ext)->readFile($filename, $opts);
+        return static::getAdapter($filename, $ext)->readFile($filename, ...$opts);
     }
 
     public static function write(
@@ -66,7 +66,7 @@ class SpreadCompat
         if ($ext) {
             unset($opts['extension']);
         }
-        return static::getAdapter($filename, $ext)->writeFile($data, $filename, $opts);
+        return static::getAdapter($filename, $ext)->writeFile($data, $filename, ...$opts);
     }
 
     public static function output(
@@ -78,6 +78,6 @@ class SpreadCompat
         if ($ext) {
             unset($opts['extension']);
         }
-        static::getAdapter($filename, $ext)->output($data, $filename, $opts);
+        static::getAdapter($filename, $ext)->output($data, $filename, ...$opts);
     }
 }

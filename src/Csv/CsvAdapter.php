@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LeKoala\SpreadCompat\Csv;
 
+use Exception;
 use LeKoala\SpreadCompat\SpreadInterface;
 
 abstract class CsvAdapter implements SpreadInterface
@@ -37,6 +38,9 @@ abstract class CsvAdapter implements SpreadInterface
     public function configure(...$opts): void
     {
         foreach ($opts as $k => $v) {
+            if (is_numeric($k)) {
+                throw new Exception("Invalid key");
+            }
             $this->$k = $v;
         }
     }

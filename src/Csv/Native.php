@@ -81,7 +81,7 @@ class Native extends CsvAdapter
         iterable $data,
         ...$opts
     ): string {
-        $this->configure($opts);
+        $this->configure(...$opts);
         $stream = fopen('php://temp/maxmemory:' . (5 * 1024 * 1024), 'r+');
         $this->write($stream, $data);
         rewind($stream);
