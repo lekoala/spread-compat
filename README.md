@@ -38,3 +38,37 @@ $data = iterator_to_array(SpreadCompat::read('myfile.csv', assoc: true));
 ## Worksheets
 
 This package support only 1 worksheet, as it is meant to be able to replace csv by xlsx or vice versa
+
+## Benchmarks
+
+Since we can compare our solutions, there is a built in bench.php script that give the following results on my machine
+
+Reading a file with 5000 rows:
+
+    Results for csv
+    LeKoala\SpreadCompat\Csv\League : 0.031
+    LeKoala\SpreadCompat\Csv\OpenSpout : 0.0916
+    LeKoala\SpreadCompat\Csv\Native : 0.0075
+    LeKoala\SpreadCompat\Csv\PhpSpreadsheet : 3.7089
+
+    Results for xlsx
+    LeKoala\SpreadCompat\Xlsx\Simple : 0.1551
+    LeKoala\SpreadCompat\Xlsx\OpenSpout : 0.8315
+    LeKoala\SpreadCompat\Xlsx\PhpSpreadsheet : 0.7036
+
+For reading, the native + simple combo seems to be the most efficient
+
+Write a file with 1000 rows:
+
+    Results for csv
+    LeKoala\SpreadCompat\Csv\League : 0.0116
+    LeKoala\SpreadCompat\Csv\OpenSpout : 0.0189
+    LeKoala\SpreadCompat\Csv\Native : 0.0066
+    LeKoala\SpreadCompat\Csv\PhpSpreadsheet : 0.1331
+
+    Results for xlsx
+    LeKoala\SpreadCompat\Xlsx\Simple : 0.0304
+    LeKoala\SpreadCompat\Xlsx\OpenSpout : 0.1228
+    LeKoala\SpreadCompat\Xlsx\PhpSpreadsheet : 0.2446
+
+For writing, the native + simple combo seems to be the most efficient

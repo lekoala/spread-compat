@@ -6,4 +6,4 @@
 /vendor/
 *.swp
 *.swo
-.~lock
+.~lock*
