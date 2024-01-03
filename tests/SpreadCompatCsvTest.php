@@ -56,6 +56,12 @@ class SpreadCompatCsvTest extends TestCase
         $this->assertCount(1, $data);
         $this->assertCount(3, $data[0]);
         $this->assertArrayHasKey('email', $data[0]);
+
+        $openSpout = new OpenSpout();
+        $data = iterator_to_array($openSpout->readFile(__DIR__ . '/data/auto2.csv', separator: 'auto'));
+        $this->assertCount(101, $data);
+        $this->assertCount(4, $data[0]);
+        SpreadCompat::$preferredCsvAdapter = null;
     }
 
     public function testOpenSpoutCanWriteCsv()
@@ -119,6 +125,12 @@ class SpreadCompatCsvTest extends TestCase
         $this->assertCount(1, $data);
         $this->assertCount(3, $data[0]);
         $this->assertArrayHasKey('email', $data[0]);
+
+        $league = new League();
+        $data = iterator_to_array($league->readFile(__DIR__ . '/data/auto2.csv', separator: 'auto'));
+        $this->assertCount(101, $data);
+        $this->assertCount(4, $data[0]);
+        SpreadCompat::$preferredCsvAdapter = null;
     }
 
     public function testLeagueCanWriteCsv()
@@ -196,6 +208,12 @@ class SpreadCompatCsvTest extends TestCase
         $this->assertCount(1, $data);
         $this->assertCount(3, $data[0]);
         $this->assertArrayHasKey('email', $data[0]);
+
+        $native = new Native();
+        $data = iterator_to_array($native->readFile(__DIR__ . '/data/auto2.csv', separator: 'auto'));
+        $this->assertCount(101, $data);
+        $this->assertCount(4, $data[0]);
+        SpreadCompat::$preferredCsvAdapter = null;
     }
 
     public function testNativeCanWriteCsv()
