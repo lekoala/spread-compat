@@ -24,6 +24,12 @@ SimpleXLSX: very fast excel import/export
 https://github.com/shuchkin/simplexlsx
 https://github.com/shuchkin/simplexlsxgen
 
+This package will prioritize installed library, by order of performance. You can also pick your preferred adapter for each format like this:
+
+```php
+SpreadCompat::$preferredCsvAdapter = SpreadCompat::NATIVE; // our native csv adapter is the fastest
+```
+
 ## Using the facade
 
 While you can use individual adapters, it's very likely you don't want to bother too much
@@ -89,3 +95,5 @@ Write a file with 1000 rows:
     LeKoala\SpreadCompat\Xlsx\PhpSpreadsheet : 0.2446
 
 For writing, the native + simple combo seems to be the most efficient
+
+Stop wasting cpu cycles right now and please use the most efficient adapter :-)

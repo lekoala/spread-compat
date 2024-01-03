@@ -13,34 +13,66 @@ use RuntimeException;
  */
 class SpreadCompat
 {
+    // Adapters names
+    public const PHP_SPREADSHEET = "PhpSpreadsheet";
+    public const OPEN_SPOUT = "OpenSpout";
+    public const LEAGUE = "League";
+    public const SIMPLE = "Simple";
+    public const NATIVE = "Native";
+
+    public const EXT_XLS = "xls";
+    public const EXT_XLSX = "xlsx";
+    public const EXT_CSV = "csv";
+
+    public static ?string $preferredCsvAdapter = null;
+    public static ?string $preferredXslxAdapter = null;
+
     public static function getAdapterName(string $filename, string $ext = null): string
     {
         if ($ext === null) {
             $ext = pathinfo($filename, PATHINFO_EXTENSION);
         }
         $ext = strtolower($ext);
-        if ($ext === "xls") {
+
+        // Legacy xls is only supported by PhpSpreadsheet
+        if ($ext === self::EXT_XLS) {
             if (class_exists(\PhpOffice\PhpSpreadsheet\Worksheet\Row::class)) {
-                return 'PhpSpreadsheet';
+                return self::PHP_SPREADSHEET;
             }
-            throw new Exception("No adapter found");
+            throw new Exception("No adapter found for xls");
         }
-        if (class_exists(\OpenSpout\Common\Entity\Row::class)) {
-            return 'OpenSpout';
+
+        if ($ext === self::EXT_CSV) {
+            if (self::$preferredCsvAdapter) {
+                return self::$preferredCsvAdapter;
+            }
+            if (class_exists(\League\Csv\Reader::class)) {
+                return self::LEAGUE;
+            }
+            if (class_exists(\OpenSpout\Common\Entity\Row::class)) {
+                return self::OPEN_SPOUT;
+            }
+            return self::NATIVE;
+
+            // You probably don't want to use php spreadsheet for csv
         }
-        if ($ext === "csv" && class_exists(\LeKoala\SpreadCompat\Csv\League::class)) {
-            return 'League';
+
+        if ($ext === self::EXT_XLSX) {
+            if (self::$preferredXslxAdapter) {
+                return self::$preferredXslxAdapter;
+            }
+            if (class_exists(\Shuchkin\SimpleXLSX::class)) {
+                return self::SIMPLE;
+            }
+            if (class_exists(\OpenSpout\Common\Entity\Row::class)) {
+                return self::OPEN_SPOUT;
+            }
+            if (class_exists(\PhpOffice\PhpSpreadsheet\Worksheet\Row::class)) {
+                return self::PHP_SPREADSHEET;
+            }
         }
-        if ($ext === "xlsx" && class_exists(\Shuchkin\SimpleXLSX::class)) {
-            return 'Simple';
-        }
-        if (class_exists(\PhpOffice\PhpSpreadsheet\Worksheet\Row::class)) {
-            return 'PhpSpreadsheet';
-        }
-        if ($ext === "csv") {
-            return 'Native';
-        }
-        throw new Exception("No adapter found");
+
+        throw new Exception("No adapter found for $ext");
     }
 
     public static function getAdapter(string $filename, string $ext = null): SpreadInterface
