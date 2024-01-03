@@ -112,7 +112,7 @@ class League extends CsvAdapter
     public function writeString(iterable $data, ...$opts): string
     {
         $this->configure(...$opts);
-        return $this->getWriter($data, ...$opts)->toString();
+        return $this->getWriter($data)->toString();
     }
 
     public function writeFile(iterable $data, string $filename, ...$opts): bool
@@ -124,7 +124,7 @@ class League extends CsvAdapter
     public function output(iterable $data, string $filename, ...$opts): void
     {
         $this->configure(...$opts);
-        $this->getWriter($data, ...$opts)->output($filename);
+        $this->getWriter($data)->output($filename);
         // ignore returned bytes
     }
 
