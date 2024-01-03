@@ -7,7 +7,6 @@ namespace LeKoala\SpreadCompat\Csv;
 use Exception;
 use Generator;
 use LeKoala\SpreadCompat\SpreadCompat;
-use RuntimeException;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Reader\CSV\Reader;
 use OpenSpout\Writer\CSV\Writer;
@@ -29,9 +28,10 @@ class OpenSpout extends CsvAdapter
         ...$opts
     ): Generator {
         $this->configure(...$opts);
+        $this->configureSeparator($filename);
         $options = new \OpenSpout\Reader\CSV\Options();
 
-        $options->FIELD_DELIMITER = $this->separator;
+        $options->FIELD_DELIMITER = $this->getSeparator();
         $options->FIELD_ENCLOSURE = $this->enclosure;
         if ($this->inputEncoding) {
             $options->ENCODING = $this->getInputEncoding() ?? mb_internal_encoding();
@@ -57,7 +57,10 @@ class OpenSpout extends CsvAdapter
         $reader->close();
     }
 
-    public function readStream(): Generator
+    /**
+     * @param resource $stream
+     */
+    public function readStream($stream, ...$opts): Generator
     {
         //@link https://github.com/openspout/openspout/issues/71
         throw new Exception("OpenSpout doesn't support streams");
@@ -66,7 +69,7 @@ class OpenSpout extends CsvAdapter
     protected function getWriter(): Writer
     {
         $options = new \OpenSpout\Writer\CSV\Options();
-        $options->FIELD_DELIMITER = $this->separator;
+        $options->FIELD_DELIMITER = $this->getSeparator();
         $options->FIELD_ENCLOSURE = $this->enclosure;
         $options->SHOULD_ADD_BOM = $this->bom;
         $writer = new Writer($options);

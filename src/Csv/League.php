@@ -15,7 +15,7 @@ class League extends CsvAdapter
     protected function read(Reader $csv): Generator
     {
         if ($this->separator) {
-            $csv->setDelimiter($this->separator);
+            $csv->setDelimiter($this->getSeparator());
         }
         if ($this->enclosure) {
             $csv->setEnclosure($this->enclosure);
@@ -48,13 +48,18 @@ class League extends CsvAdapter
         ...$opts
     ): Generator {
         $this->configure(...$opts);
+        $this->configureSeparator($contents);
         $csv = Reader::createFromString($contents);
         yield from $this->read($csv);
     }
 
+    /**
+     * @param resource $stream
+     */
     public function readStream($stream, ...$opts): Generator
     {
         $this->configure(...$opts);
+        $this->configureSeparator($stream);
         $csv = Reader::createFromStream($stream);
         yield from $this->read($csv);
     }
@@ -65,6 +70,7 @@ class League extends CsvAdapter
     ): Generator {
         $this->configure(...$opts);
         $stream = fopen($filename, 'r');
+        $this->configureSeparator($stream);
         if (!$stream) {
             throw new RuntimeException("Failed to open $filename");
         }
@@ -76,7 +82,7 @@ class League extends CsvAdapter
     {
         $csv = Writer::createFromString();
         if ($this->separator) {
-            $csv->setDelimiter($this->separator);
+            $csv->setDelimiter($this->getSeparator());
         }
         if ($this->enclosure) {
             $csv->setEnclosure($this->enclosure);

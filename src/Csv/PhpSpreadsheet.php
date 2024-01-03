@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace LeKoala\SpreadCompat\Csv;
 
+use Exception;
 use Generator;
 use LeKoala\SpreadCompat\SpreadCompat;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Reader\Csv as ReaderCsv;
 use PhpOffice\PhpSpreadsheet\Writer\Csv as WriterCsv;
 
+/**
+ * This is very slow and should probably not be used
+ */
 class PhpSpreadsheet extends CsvAdapter
 {
     protected function getReader(): ReaderCsv
@@ -18,7 +22,7 @@ class PhpSpreadsheet extends CsvAdapter
         if ($this->inputEncoding) {
             $reader->setInputEncoding($this->getInputEncoding() ?? mb_internal_encoding());
         }
-        $reader->setDelimiter($this->separator);
+        $reader->setDelimiter($this->getSeparator());
         $reader->setEnclosure($this->enclosure);
         $reader->setEscapeCharacter($this->escape);
         $reader->setSheetIndex(0);
@@ -63,6 +67,14 @@ class PhpSpreadsheet extends CsvAdapter
         yield from $this->readSpreadsheet($spreadsheet);
     }
 
+    /**
+     * @param resource $stream
+     */
+    public function readStream($stream, ...$opts): Generator
+    {
+        throw new Exception("PhpSpreadsheet doesn't support streams");
+    }
+
     public function readFile(
         string $filename,
         ...$opts
@@ -83,7 +95,7 @@ class PhpSpreadsheet extends CsvAdapter
         if ($this->outputEncoding) {
             $writer->setOutputEncoding($this->getOutputEncoding() ?? mb_internal_encoding());
         }
-        $writer->setDelimiter($this->separator);
+        $writer->setDelimiter($this->getSeparator());
         $writer->setEnclosure($this->enclosure);
         $writer->setLineEnding($this->eol);
         $writer->setSheetIndex(0);

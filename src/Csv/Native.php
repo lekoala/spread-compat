@@ -22,11 +22,13 @@ class Native extends CsvAdapter
         ...$opts
     ): Generator {
         $this->configure(...$opts);
+        $this->configureSeparator($contents);
 
         // check for bom
         if (strncmp($contents, self::BOM, 3) === 0) {
             $contents = substr($contents, 3);
         }
+        $separator = $this->getSeparator();
 
         // parse rows and take into account enclosure and escaped parts
         /** @var array<string> $data */
@@ -34,7 +36,7 @@ class Native extends CsvAdapter
 
         $headers = null;
         foreach ($data as $line) {
-            $row = str_getcsv($line, $this->separator, $this->enclosure, $this->escape);
+            $row = str_getcsv($line, $separator, $this->enclosure, $this->escape);
             if ($this->assoc) {
                 if ($headers === null) {
                     $headers = $row;
@@ -52,15 +54,19 @@ class Native extends CsvAdapter
     public function readStream($stream, ...$opts): Generator
     {
         $this->configure(...$opts);
+        $this->configureSeparator($stream);
+
         if (fgets($stream, 4) !== self::BOM) {
             // bom not found - rewind pointer to start of file.
             rewind($stream);
         }
         $headers = null;
+        $separator = $this->getSeparator();
+
         while (
             !feof($stream)
             &&
-            ($line = fgetcsv($stream, null, $this->separator, $this->enclosure, $this->escape)) !== false
+            ($line = fgetcsv($stream, null, $separator, $this->enclosure, $this->escape)) !== false
         ) {
             if ($this->assoc) {
                 if ($headers === null) {
@@ -78,6 +84,7 @@ class Native extends CsvAdapter
         ...$opts
     ): Generator {
         $stream = fopen($filename, 'r');
+        $this->configureSeparator($stream);
         if (!$stream) {
             throw new RuntimeException("Failed to read stream");
         }
@@ -94,8 +101,10 @@ class Native extends CsvAdapter
         if ($this->bom) {
             fputs($stream, self::BOM);
         }
+
+        $separator = $this->getSeparator();
         foreach ($data as $row) {
-            $result = fputcsv($stream, $row, $this->separator, $this->enclosure, $this->escape, $this->eol);
+            $result = fputcsv($stream, $row, $separator, $this->enclosure, $this->escape, $this->eol);
             if ($result === false) {
                 throw new RuntimeException("Failed to write line");
             }

@@ -101,6 +101,20 @@ class SpreadCompat
         return $filename;
     }
 
+    /**
+     * Try to determine based on contents
+     * Expect csv to be all printable chars
+     */
+    public static function getExtensionForContent(string $contents): string
+    {
+        if (ctype_print($contents)) {
+            $ext = self::EXT_CSV;
+        } else {
+            $ext = self::EXT_XLSX;
+        }
+        return $ext;
+    }
+
     public static function read(
         string $filename,
         ...$opts
@@ -116,13 +130,7 @@ class SpreadCompat
     ): Generator {
         $ext = $opts['extension'] ?? $ext;
         if ($ext === null) {
-            // Try to determine based on contents
-            // Expect csv to be all printable chars
-            if (ctype_print($contents)) {
-                $ext = self::EXT_CSV;
-            } else {
-                $ext = self::EXT_XLSX;
-            }
+            $ext = self::getExtensionForContent($contents);
         }
         return static::getAdapter($ext)->readString($contents, ...$opts);
     }
