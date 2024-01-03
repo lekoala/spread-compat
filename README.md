@@ -12,13 +12,13 @@ Ideally, importing single sheets of csv or excel should be just a matter of chan
 OpenSpout: fast csv and excel import/export
 https://github.com/openspout/openspout
 
-League CSV: very fast csv import/export
+League CSV: very fast csv import/export. Can read streams.
 https://github.com/thephpleague/csv
 
 PhpSpreadsheet: slow excel (xls and xlsx) and csv import/export, but more features
 https://github.com/PHPOffice/PhpSpreadsheet
 
-Native php: very fast csv import/export, but limited features
+Native php: very fast csv import/export, but limited features. Can read streams.
 
 SimpleXLSX: very fast excel import/export
 https://github.com/shuchkin/simplexlsx
@@ -47,7 +47,9 @@ foreach(SpreadCompat::read('myfile.csv') as $row) {
 }
 ```
 
-## Using named arguments
+## Configure
+
+### Using named arguments
 
 This package accepts options using ...opts, this means you can freely use named arguments or pass an array.
 
@@ -56,6 +58,16 @@ $data = iterator_to_array(SpreadCompat::read('myfile.csv', assoc: true));
 
 // or
 $data = iterator_to_array(SpreadCompat::read('myfile.csv', ...$opts));
+```
+
+### Using options object
+
+You can also use the `Options` class that regroups all available options for all adapters. Unsupported options are ignored.
+
+```php
+$options = new Options();
+$options->separator = ";";
+$data = iterator_to_array(SpreadCompat::read('myfile.csv', $options));
 ```
 
 ## Worksheets

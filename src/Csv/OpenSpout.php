@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LeKoala\SpreadCompat\Csv;
 
+use Exception;
 use Generator;
 use LeKoala\SpreadCompat\SpreadCompat;
 use RuntimeException;
@@ -54,6 +55,12 @@ class OpenSpout extends CsvAdapter
             }
         }
         $reader->close();
+    }
+
+    public function readStream(): Generator
+    {
+        //@link https://github.com/openspout/openspout/issues/71
+        throw new Exception("OpenSpout doesn't support streams");
     }
 
     protected function getWriter(): Writer

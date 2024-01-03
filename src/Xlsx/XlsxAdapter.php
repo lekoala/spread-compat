@@ -4,26 +4,15 @@ declare(strict_types=1);
 
 namespace LeKoala\SpreadCompat\Xlsx;
 
-use Exception;
+use LeKoala\SpreadCompat\Common\Configure;
 use LeKoala\SpreadCompat\SpreadInterface;
 
 abstract class XlsxAdapter implements SpreadInterface
 {
+    use Configure;
+
     public bool $assoc = false;
     public ?string $creator = null;
     public ?string $autofilter = null;
     public ?string $freezePane = null;
-
-    public function configure(...$opts): void
-    {
-        foreach ($opts as $k => $v) {
-            if (is_numeric($k)) {
-                throw new Exception("Invalid key");
-            }
-            if (!property_exists($this, $k)) {
-                continue;
-            }
-            $this->$k = $v;
-        }
-    }
 }

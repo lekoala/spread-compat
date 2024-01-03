@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace LeKoala\SpreadCompat\Csv;
 
-use Exception;
+use LeKoala\SpreadCompat\Common\Configure;
 use LeKoala\SpreadCompat\SpreadInterface;
 
 abstract class CsvAdapter implements SpreadInterface
 {
+    use Configure;
+
     public string $separator = ",";
     public string $enclosure = "\"";
     public string $escape = "\\";
@@ -36,18 +38,5 @@ abstract class CsvAdapter implements SpreadInterface
             return strtoupper($this->outputEncoding);
         }
         return null;
-    }
-
-    public function configure(...$opts): void
-    {
-        foreach ($opts as $k => $v) {
-            if (is_numeric($k)) {
-                throw new Exception("Invalid key");
-            }
-            if (!property_exists($this, $k)) {
-                continue;
-            }
-            $this->$k = $v;
-        }
     }
 }

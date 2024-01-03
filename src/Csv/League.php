@@ -52,6 +52,13 @@ class League extends CsvAdapter
         yield from $this->read($csv);
     }
 
+    public function readStream($stream, ...$opts): Generator
+    {
+        $this->configure(...$opts);
+        $csv = Reader::createFromStream($stream);
+        yield from $this->read($csv);
+    }
+
     public function readFile(
         string $filename,
         ...$opts

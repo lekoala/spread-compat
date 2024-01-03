@@ -144,6 +144,13 @@ class SpreadCompatCsvTest extends TestCase
         ]);
         $expected = file_get_contents(__DIR__ . '/data/separator.csv');
         $this->assertEquals($expected, $string);
+
+        $native = new League();
+        $stream = fopen(__DIR__ . '/data/headers.csv', 'r');
+        $data = iterator_to_array($native->readStream($stream, assoc: true));
+        $this->assertCount(1, $data);
+        $this->assertCount(3, $data[0]);
+        $this->assertArrayHasKey('email', $data[0]);
     }
 
     public function testNativeCanReadCsv()
@@ -169,6 +176,13 @@ class SpreadCompatCsvTest extends TestCase
 
         $native = new Native();
         $data = iterator_to_array($native->readFile(__DIR__ . '/data/headers.csv', assoc: true));
+        $this->assertCount(1, $data);
+        $this->assertCount(3, $data[0]);
+        $this->assertArrayHasKey('email', $data[0]);
+
+        $native = new Native();
+        $stream = fopen(__DIR__ . '/data/headers.csv', 'r');
+        $data = iterator_to_array($native->readStream($stream, assoc: true));
         $this->assertCount(1, $data);
         $this->assertCount(3, $data[0]);
         $this->assertArrayHasKey('email', $data[0]);

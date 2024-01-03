@@ -6,6 +6,7 @@ namespace LeKoala\SpreadCompat;
 
 use Exception;
 use Generator;
+use InvalidArgumentException;
 use RuntimeException;
 
 /**
@@ -27,11 +28,8 @@ class SpreadCompat
     public static ?string $preferredCsvAdapter = null;
     public static ?string $preferredXslxAdapter = null;
 
-    public static function getAdapterName(string $filename, string $ext = null): string
+    public static function getAdapterName(string $ext): string
     {
-        if ($ext === null) {
-            $ext = pathinfo($filename, PATHINFO_EXTENSION);
-        }
         $ext = strtolower($ext);
 
         // Legacy xls is only supported by PhpSpreadsheet
@@ -39,11 +37,10 @@ class SpreadCompat
             if (class_exists(\PhpOffice\PhpSpreadsheet\Worksheet\Row::class)) {
                 return self::PHP_SPREADSHEET;
             }
-            throw new Exception("No adapter found for xls");
         }
 
         if ($ext === self::EXT_CSV) {
-            if (self::$preferredCsvAdapter) {
+            if (self::$preferredCsvAdapter !== null) {
                 return self::$preferredCsvAdapter;
             }
             if (class_exists(\League\Csv\Reader::class)) {
@@ -58,7 +55,7 @@ class SpreadCompat
         }
 
         if ($ext === self::EXT_XLSX) {
-            if (self::$preferredXslxAdapter) {
+            if (self::$preferredXslxAdapter !== null) {
                 return self::$preferredXslxAdapter;
             }
             if (class_exists(\Shuchkin\SimpleXLSX::class)) {
@@ -75,18 +72,23 @@ class SpreadCompat
         throw new Exception("No adapter found for $ext");
     }
 
-    public static function getAdapter(string $filename, string $ext = null): SpreadInterface
+    public static function getAdapter(string $ext): SpreadInterface
+    {
+        $ext = ucfirst($ext);
+        $name = self::getAdapterName($ext);
+        $class = 'LeKoala\\SpreadCompat\\' . $ext . '\\' . $name;
+        if (!class_exists($class)) {
+            throw new Exception("Invalid adapter $class");
+        }
+        return new ($class);
+    }
+
+    public static function getAdapterForFile(string $filename, string $ext = null): SpreadInterface
     {
         if ($ext === null) {
             $ext = pathinfo($filename, PATHINFO_EXTENSION);
         }
-        $ext = ucfirst($ext);
-        $name = self::getAdapterName($filename, $ext);
-        $class = 'LeKoala\\SpreadCompat\\' . $ext . '\\' . $name;
-        if (!class_exists($class)) {
-            throw new Exception("Invalid adapter $class for $filename");
-        }
-        return new ($class);
+        return self::getAdapter($ext);
     }
 
     public static function getTempFilename(): string
@@ -104,10 +106,25 @@ class SpreadCompat
         ...$opts
     ): Generator {
         $ext = $opts['extension'] ?? null;
-        if ($ext) {
-            unset($opts['extension']);
+        return static::getAdapterForFile($filename, $ext)->readFile($filename, ...$opts);
+    }
+
+    public static function readString(
+        string $contents,
+        string $ext = null,
+        ...$opts
+    ): Generator {
+        $ext = $opts['extension'] ?? $ext;
+        if ($ext === null) {
+            // Try to determine based on contents
+            // Expect csv to be all printable chars
+            if (ctype_print($contents)) {
+                $ext = self::EXT_CSV;
+            } else {
+                $ext = self::EXT_XLSX;
+            }
         }
-        return static::getAdapter($filename, $ext)->readFile($filename, ...$opts);
+        return static::getAdapter($ext)->readString($contents, ...$opts);
     }
 
     public static function write(
@@ -116,10 +133,7 @@ class SpreadCompat
         ...$opts
     ): bool {
         $ext = $opts['extension'] ?? null;
-        if ($ext) {
-            unset($opts['extension']);
-        }
-        return static::getAdapter($filename, $ext)->writeFile($data, $filename, ...$opts);
+        return static::getAdapterForFile($filename, $ext)->writeFile($data, $filename, ...$opts);
     }
 
     public static function output(
@@ -128,9 +142,6 @@ class SpreadCompat
         ...$opts
     ): void {
         $ext = $opts['extension'] ?? null;
-        if ($ext) {
-            unset($opts['extension']);
-        }
-        static::getAdapter($filename, $ext)->output($data, $filename, ...$opts);
+        static::getAdapterForFile($filename, $ext)->output($data, $filename, ...$opts);
     }
 }

@@ -12,7 +12,7 @@ class SpreadCompatXlsTest extends TestCase
 {
     public function testFacadeCanReadXls()
     {
-        $adapter = SpreadCompat::getAdapterName(__DIR__ . '/data/basic.xls');
+        $adapter = SpreadCompat::getAdapterName('xls');
         $this->assertEquals("PhpSpreadsheet", $adapter);
 
         $data = iterator_to_array(SpreadCompat::read(__DIR__ . '/data/basic.xls'));

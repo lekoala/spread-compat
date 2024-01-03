@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace LeKoala\SpreadCompat\Csv;
 
 use Generator;
-use RuntimeException;
 use LeKoala\SpreadCompat\SpreadCompat;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Reader\Csv as ReaderCsv;

@@ -43,15 +43,12 @@ class Native extends CsvAdapter
         }
     }
 
-    public function readFile(
-        string $filename,
-        ...$opts
-    ): Generator {
+    /**
+     * @param resource $stream
+     */
+    public function readStream($stream, ...$opts): Generator
+    {
         $this->configure(...$opts);
-        $stream = fopen($filename, 'r');
-        if (!$stream) {
-            throw new RuntimeException("Failed to read stream");
-        }
         if (fgets($stream, 4) !== self::BOM) {
             // bom not found - rewind pointer to start of file.
             rewind($stream);
@@ -71,6 +68,17 @@ class Native extends CsvAdapter
             }
             yield $line;
         }
+    }
+
+    public function readFile(
+        string $filename,
+        ...$opts
+    ): Generator {
+        $stream = fopen($filename, 'r');
+        if (!$stream) {
+            throw new RuntimeException("Failed to read stream");
+        }
+        yield from $this->readStream($stream, ...$opts);
     }
 
     /**
