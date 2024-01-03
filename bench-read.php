@@ -55,11 +55,19 @@ foreach ($xlsx as $cl) {
     }
 }
 
+
 foreach ($times as $format => $dataFormat) {
     echo "Results for $format" . PHP_EOL;
 
+    $results = [];
     foreach ($dataFormat as $class => $times) {
-        echo "$class : " . round(array_sum($times) / count($times), 4) . PHP_EOL;
+        $averageTime = round(array_sum($times) / count($times), 4);
+        $results[$class] = $averageTime;
+    }
+
+    uasort($results, fn ($a, $b) => $a <=> $b);
+    foreach ($results as $class => $averageTime) {
+        echo "$class : " . $averageTime . PHP_EOL;
     }
 
     echo PHP_EOL;

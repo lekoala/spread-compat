@@ -10,6 +10,8 @@ use RuntimeException;
 /**
  * This class allows you to read and write csv easily if you
  * don't have League or OpenSpout installed
+ *
+ * It's also the fastest adapter as far as I can tell
  */
 class Native extends CsvAdapter
 {
@@ -20,6 +22,7 @@ class Native extends CsvAdapter
         ...$opts
     ): Generator {
         $this->configure(...$opts);
+
         // check for bom
         if (strncmp($contents, self::BOM, 3) === 0) {
             $contents = substr($contents, 3);
