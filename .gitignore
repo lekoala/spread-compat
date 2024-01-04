@@ -7,3 +7,4 @@
 *.swp
 *.swo
 .~lock*
+/.dev

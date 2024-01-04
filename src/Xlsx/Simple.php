@@ -8,7 +8,6 @@ use Generator;
 use RuntimeException;
 use Shuchkin\SimpleXLSX;
 use Shuchkin\SimpleXLSXGen;
-use LeKoala\SpreadCompat\SpreadCompat;
 use LeKoala\SpreadCompat\Xlsx\XlsxAdapter;
 
 /**
@@ -17,16 +16,6 @@ use LeKoala\SpreadCompat\Xlsx\XlsxAdapter;
  */
 class Simple extends XlsxAdapter
 {
-    public function readString(
-        string $contents,
-        ...$opts
-    ): Generator {
-        $filename = SpreadCompat::getTempFilename();
-        file_put_contents($filename, $contents);
-        yield from $this->readFile($filename);
-        unlink($filename);
-    }
-
     public function readFile(
         string $filename,
         ...$opts
@@ -68,20 +57,6 @@ class Simple extends XlsxAdapter
             $xlsx->freezePanes($this->freezePane);
         }
         return $xlsx;
-    }
-
-    public function writeString(
-        iterable $data,
-        ...$opts
-    ): string {
-        $filename = SpreadCompat::getTempFilename();
-        $this->writeFile($data, $filename);
-        $contents = file_get_contents($filename);
-        if (!$contents) {
-            $contents = "";
-        }
-        unlink($filename);
-        return $contents;
     }
 
     public function writeFile(

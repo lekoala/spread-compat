@@ -6,7 +6,6 @@ namespace LeKoala\SpreadCompat;
 
 use Exception;
 use Generator;
-use InvalidArgumentException;
 use RuntimeException;
 
 /**
@@ -67,6 +66,7 @@ class SpreadCompat
             if (class_exists(\PhpOffice\PhpSpreadsheet\Worksheet\Row::class)) {
                 return self::PHP_SPREADSHEET;
             }
+            return self::NATIVE;
         }
 
         throw new Exception("No adapter found for $ext");
@@ -115,11 +115,118 @@ class SpreadCompat
         return $ext;
     }
 
+    /**
+     * The memory limit of php://temp can be controlled by appending /maxmemory:NN,
+     * where NN is the maximum amount of data to keep in memory before using a temporary file, in bytes.
+     *
+     * @return resource
+     */
+    public static function getMaxMemTempStream()
+    {
+        $mb = 4;
+        $stream = fopen('php://temp/maxmemory:' . ($mb * 1024 * 1024), 'r+');
+        if (!$stream) {
+            throw new RuntimeException("Failed to open stream");
+        }
+        return $stream;
+    }
+
+    /**
+     * @return resource
+     */
+    public static function getOutputStream(string $filename = 'php://output')
+    {
+        $stream = fopen($filename, 'w');
+        if (!$stream) {
+            throw new RuntimeException("Failed to open stream");
+        }
+        return $stream;
+    }
+
+    /**
+     * @return resource
+     */
+    public static function getInputStream(string $filename)
+    {
+        $stream = fopen($filename, 'r');
+        if (!$stream) {
+            throw new RuntimeException("Failed to open stream");
+        }
+        return $stream;
+    }
+
+    public static function ensureExtension(string $filename, string $ext): string
+    {
+        $fileExt = pathinfo($filename, PATHINFO_EXTENSION);
+        if ($fileExt != $ext) {
+            $filename .= ".$ext";
+        }
+        return $filename;
+    }
+
+    public static function outputHeaders(string $contentType, string $filename): void
+    {
+        if (headers_sent()) {
+            throw new RuntimeException("Headers already sent");
+        }
+
+        header('Content-Type: ' . $contentType);
+        header(
+            'Content-Disposition: attachment; ' .
+                'filename="' . rawurlencode($filename) . '"; ' .
+                'filename*=UTF-8\'\'' . rawurlencode($filename)
+        );
+        header('Cache-Control: max-age=0');
+        header('Pragma: public');
+    }
+
+    /**
+     * @return Generator<string>
+     */
+    public static function excelColumnRange(string $lower = 'A', string $upper = 'ZZ'): Generator
+    {
+        ++$upper;
+        for ($i = $lower; $i !== $upper; ++$i) {
+            yield $i;
+        }
+    }
+
+    /**
+     * String from column index.
+     *
+     * @param int $index Column index (1 = A)
+     */
+    public static function getLetter($index): string
+    {
+        foreach (self::excelColumnRange() as $letter) {
+            $index--;
+            if ($index <= 0) {
+                return $letter;
+            }
+        }
+        return 'A';
+    }
+
+    public static function excelCell(int $row = 0, int $column = 0, bool $absolute = false): string
+    {
+        $n = $column;
+        for ($r = ""; $n >= 0; $n = intval($n / 26) - 1) {
+            $r = chr($n % 26 + 0x41) . $r;
+        }
+        if ($absolute) {
+            return '$' . $r . '$' . ($row + 1);
+        }
+        return $r . ($row + 1);
+    }
+
     public static function read(
         string $filename,
         ...$opts
     ): Generator {
         $ext = $opts['extension'] ?? null;
+        if ($ext) {
+            $filename = self::ensureExtension($filename, $ext);
+        }
         return static::getAdapterForFile($filename, $ext)->readFile($filename, ...$opts);
     }
 
@@ -150,6 +257,9 @@ class SpreadCompat
         ...$opts
     ): void {
         $ext = $opts['extension'] ?? null;
+        if ($ext) {
+            $filename = self::ensureExtension($filename, $ext);
+        }
         static::getAdapterForFile($filename, $ext)->output($data, $filename, ...$opts);
     }
 }

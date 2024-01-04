@@ -7,6 +7,7 @@ namespace LeKoala\SpreadCompat\Tests;
 use PHPUnit\Framework\TestCase;
 use LeKoala\SpreadCompat\Xlsx\Simple;
 use LeKoala\SpreadCompat\SpreadCompat;
+use LeKoala\SpreadCompat\Xlsx\Native;
 use LeKoala\SpreadCompat\Xlsx\OpenSpout;
 use LeKoala\SpreadCompat\Xlsx\PhpSpreadsheet;
 
@@ -138,6 +139,49 @@ class SpreadCompatXlsxTest extends TestCase
 
         $openSpout = new Simple();
         $string2 = $openSpout->writeString([
+            [
+                "fname", "sname", "email"
+            ],
+            [
+                "john", "doe", "john.doe@example.com"
+            ]
+        ], ...[
+            'autofilter' => 'A1:C1',
+            'freezePane' => 'A1',
+        ]);
+        $this->assertStringContainsString('[Content_Types].xml', $string);
+        $this->assertNotEquals($string, $string2);
+    }
+
+    public function testNativeCanReadXlsx()
+    {
+        $Native = new Native();
+        $data = iterator_to_array($Native->readFile(__DIR__ . '/data/empty.xlsx'));
+        $this->assertCount(0, $data);
+
+        $Native = new Native();
+        $data = iterator_to_array($Native->readFile(__DIR__ . '/data/basic.xlsx'));
+        $this->assertCount(1, $data);
+        $this->assertCount(3, $data[0]);
+
+        $Native = new Native();
+        $data = iterator_to_array($Native->readFile(__DIR__ . '/data/header.xlsx', assoc: true));
+        $this->assertCount(1, $data);
+        $this->assertCount(4, $data[0]);
+    }
+
+    public function testNativeCanWriteXlsx()
+    {
+        $Native = new Native();
+        $string = $Native->writeString([
+            [
+                "john", "doe", "john.doe@example.com"
+            ]
+        ]);
+        $this->assertStringContainsString('[Content_Types].xml', $string);
+
+        $Native = new Native();
+        $string2 = $Native->writeString([
             [
                 "fname", "sname", "email"
             ],

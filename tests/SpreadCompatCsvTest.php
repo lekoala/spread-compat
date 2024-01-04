@@ -18,7 +18,10 @@ class SpreadCompatCsvTest extends TestCase
         $data = iterator_to_array(SpreadCompat::read(__DIR__ . '/data/basic.csv'));
         $this->assertCount(1, $data);
         $this->assertCount(3, $data[0]);
+    }
 
+    public function testAutoSeparator()
+    {
         SpreadCompat::$preferredCsvAdapter = SpreadCompat::NATIVE;
         $data = iterator_to_array(SpreadCompat::read(__DIR__ . '/data/auto.csv', separator: 'auto'));
         $this->assertCount(101, $data);

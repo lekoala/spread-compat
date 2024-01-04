@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LeKoala\SpreadCompat\Csv;
 
 use Generator;
+use LeKoala\SpreadCompat\SpreadCompat;
 use RuntimeException;
 
 /**
@@ -83,11 +84,7 @@ class Native extends CsvAdapter
         string $filename,
         ...$opts
     ): Generator {
-        $stream = fopen($filename, 'r');
-        $this->configureSeparator($stream);
-        if (!$stream) {
-            throw new RuntimeException("Failed to read stream");
-        }
+        $stream = SpreadCompat::getInputStream($filename);
         yield from $this->readStream($stream, ...$opts);
     }
 
@@ -116,10 +113,8 @@ class Native extends CsvAdapter
         ...$opts
     ): string {
         $this->configure(...$opts);
-        $stream = fopen('php://temp/maxmemory:' . (5 * 1024 * 1024), 'r+');
-        if (!$stream) {
-            throw new RuntimeException("Failed to read stream");
-        }
+
+        $stream = SpreadCompat::getMaxMemTempStream();
         $this->write($stream, $data);
         rewind($stream);
         $contents = stream_get_contents($stream);
@@ -136,10 +131,7 @@ class Native extends CsvAdapter
         ...$opts
     ): bool {
         $this->configure(...$opts);
-        $stream = fopen($filename, 'w');
-        if (!$stream) {
-            throw new RuntimeException("Failed to read stream");
-        }
+        $stream = SpreadCompat::getOutputStream($filename);
         $this->write($stream, $data);
         fclose($stream);
         return true;
@@ -152,19 +144,8 @@ class Native extends CsvAdapter
     ): void {
         $this->configure(...$opts);
 
-        header('Content-Type: text/csv');
-        header(
-            'Content-Disposition: attachment; ' .
-                'filename="' . rawurlencode($filename) . '"; ' .
-                'filename*=UTF-8\'\'' . rawurlencode($filename)
-        );
-        header('Cache-Control: max-age=0');
-        header('Pragma: public');
-
-        $stream = fopen('php://output', 'w');
-        if (!$stream) {
-            throw new RuntimeException("Failed to read stream");
-        }
+        SpreadCompat::outputHeaders('text/csv', $filename);
+        $stream = SpreadCompat::getOutputStream();
         $this->write($stream, $data);
         fclose($stream);
     }

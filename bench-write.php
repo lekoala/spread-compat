@@ -5,6 +5,7 @@ use LeKoala\SpreadCompat\Csv\Native;
 use LeKoala\SpreadCompat\Csv\OpenSpout;
 use LeKoala\SpreadCompat\Csv\PhpSpreadsheet;
 use LeKoala\SpreadCompat\SpreadCompat;
+use LeKoala\SpreadCompat\Xlsx\Native as XlsxNative;
 use LeKoala\SpreadCompat\Xlsx\PhpSpreadsheet as XlsxPhpSpreadsheet;
 use LeKoala\SpreadCompat\Xlsx\OpenSpout as XlsxOpenSpout;
 use LeKoala\SpreadCompat\Xlsx\Simple;
@@ -15,7 +16,7 @@ $largeCsv = SpreadCompat::getTempFilename();
 $largeXlsx = SpreadCompat::getTempFilename();
 
 $genData = [];
-foreach (range(1, 1000) as $i) {
+foreach (range(1, 2500) as $i) {
     $genData[] = [$i, "fname $i", "sname $i", "email-$i@domain.com"];
 }
 
@@ -30,6 +31,7 @@ $xlsx = [
     Simple::class,
     XlsxOpenSpout::class,
     XlsxPhpSpreadsheet::class,
+    XlsxNative::class,
 ];
 
 $reps = 5;
@@ -67,12 +69,13 @@ foreach ($xlsx as $cl) {
 foreach ($times as $format => $dataFormat) {
     echo "Results for $format" . PHP_EOL;
 
+    $results = [];
     foreach ($dataFormat as $class => $times) {
         $averageTime = round(array_sum($times) / count($times), 4);
         $results[$class] = $averageTime;
     }
 
-    uasort($results, fn($a, $b) => $a <=> $b);
+    uasort($results, fn ($a, $b) => $a <=> $b);
     foreach ($results as $class => $averageTime) {
         echo "$class : " . $averageTime . PHP_EOL;
     }

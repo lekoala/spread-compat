@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace LeKoala\SpreadCompat\Xlsx;
 
 use Generator;
-use RuntimeException;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Writer\AutoFilter;
 use OpenSpout\Reader\XLSX\Reader;
@@ -15,16 +14,6 @@ use OpenSpout\Writer\XLSX\Entity\SheetView;
 
 class OpenSpout extends XlsxAdapter
 {
-    public function readString(
-        string $contents,
-        ...$opts
-    ): Generator {
-        $filename = SpreadCompat::getTempFilename();
-        file_put_contents($filename, $contents);
-        yield from $this->readFile($filename);
-        unlink($filename);
-    }
-
     public function readFile(
         string $filename,
         ...$opts
@@ -106,18 +95,6 @@ class OpenSpout extends XlsxAdapter
             $toColumnIndex,
             $toRow,
         ];
-    }
-
-    public function writeString(iterable $data, ...$opts): string
-    {
-        $filename = SpreadCompat::getTempFilename();
-        $this->writeFile($data, $filename);
-        $contents = file_get_contents($filename);
-        if (!$contents) {
-            $contents = "";
-        }
-        unlink($filename);
-        return $contents;
     }
 
     public function writeFile(iterable $data, string $filename, ...$opts): bool

@@ -18,7 +18,7 @@ https://github.com/thephpleague/csv
 PhpSpreadsheet: slow excel (xls and xlsx) and csv import/export, but more features
 https://github.com/PHPOffice/PhpSpreadsheet
 
-Native php: very fast csv import/export, but limited features. Can read streams.
+Native php: very fast csv import/export, but limited features. Can read/output streams.
 
 SimpleXLSX: very fast excel import/export
 https://github.com/shuchkin/simplexlsx
@@ -28,6 +28,7 @@ This package will prioritize installed library, by order of performance. You can
 
 ```php
 SpreadCompat::$preferredCsvAdapter = SpreadCompat::NATIVE; // our native csv adapter is the fastest
+SpreadCompat::$preferredXlsxAdapter = SpreadCompat::NATIVE; // our native xlsx adapter is the fastest
 ```
 
 ## Using the facade
@@ -45,6 +46,17 @@ $data = iterator_to_array(SpreadCompat::read('myfile.csv'));
 foreach(SpreadCompat::read('myfile.csv') as $row) {
     // Do something
 }
+```
+
+## Output to browser
+
+This package includes a simple way to leverage output to browser type of functionnality.
+
+Some adapters allow you to stream directly the response.
+
+```php
+SpreadCompat::output('myfile.csv');
+exit();
 ```
 
 ## Configure
@@ -81,31 +93,32 @@ Since we can compare our solutions, there is a built in bench.php script that gi
 Reading a file with 5000 rows:
 
     Results for csv
-    LeKoala\SpreadCompat\Csv\Native : 0.0075
-    LeKoala\SpreadCompat\Csv\League : 0.031
-    LeKoala\SpreadCompat\Csv\OpenSpout : 0.0916
-    LeKoala\SpreadCompat\Csv\PhpSpreadsheet : 3.7089
+    LeKoala\SpreadCompat\Csv\Native : 0.0079
+    LeKoala\SpreadCompat\Csv\League : 0.0304
+    LeKoala\SpreadCompat\Csv\OpenSpout : 0.0924
+    LeKoala\SpreadCompat\Csv\PhpSpreadsheet : 3.9437
 
     Results for xlsx
-    LeKoala\SpreadCompat\Xlsx\Simple : 0.1551
-    LeKoala\SpreadCompat\Xlsx\PhpSpreadsheet : 0.7036
-    LeKoala\SpreadCompat\Xlsx\OpenSpout : 0.8315
+    LeKoala\SpreadCompat\Xlsx\Native : 0.0636
+    LeKoala\SpreadCompat\Xlsx\Simple : 0.1585
+    LeKoala\SpreadCompat\Xlsx\PhpSpreadsheet : 0.7502
+    LeKoala\SpreadCompat\Xlsx\OpenSpout : 0.8748
 
-For reading, the native + simple combo seems to be the most efficient
-
-Write a file with 1000 rows:
+Write a file with 2500 rows:
 
     Results for csv
-    LeKoala\SpreadCompat\Csv\Native : 0.0066
-    LeKoala\SpreadCompat\Csv\League : 0.0116
-    LeKoala\SpreadCompat\Csv\OpenSpout : 0.0189
-    LeKoala\SpreadCompat\Csv\PhpSpreadsheet : 0.1331
+    LeKoala\SpreadCompat\Csv\Native : 0.0053
+    LeKoala\SpreadCompat\Csv\League : 0.0143
+    LeKoala\SpreadCompat\Csv\OpenSpout : 0.0428
+    LeKoala\SpreadCompat\Csv\PhpSpreadsheet : 0.3491
 
     Results for xlsx
-    LeKoala\SpreadCompat\Xlsx\Simple : 0.0304
-    LeKoala\SpreadCompat\Xlsx\OpenSpout : 0.1228
-    LeKoala\SpreadCompat\Xlsx\PhpSpreadsheet : 0.2446
+    LeKoala\SpreadCompat\Xlsx\Native : 0.0263
+    LeKoala\SpreadCompat\Xlsx\Simple : 0.0793
+    LeKoala\SpreadCompat\Xlsx\OpenSpout : 0.2621
+    LeKoala\SpreadCompat\Xlsx\PhpSpreadsheet : 0.6322
 
-For writing, the native + simple combo seems to be the most efficient
+For simple imports/exports, it's very clear that using the Native adapter is the fastest.
+These are not enabled by default since they might lack some compatibility feature you may require.
 
 Stop wasting cpu cycles right now and please use the most efficient adapter :-)

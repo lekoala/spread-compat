@@ -130,15 +130,7 @@ class PhpSpreadsheet extends CsvAdapter
         $this->configure(...$opts);
         $writer = $this->getWriter($data);
 
-        header('Content-Type: text/csv');
-        header(
-            'Content-Disposition: attachment; ' .
-                'filename="' . rawurlencode($filename) . '"; ' .
-                'filename*=UTF-8\'\'' . rawurlencode($filename)
-        );
-        header('Cache-Control: max-age=0');
-        header('Pragma: public');
-
+        SpreadCompat::outputHeaders('text/csv', $filename);
         ob_end_clean();
         ob_start();
         $writer->save('php://output');

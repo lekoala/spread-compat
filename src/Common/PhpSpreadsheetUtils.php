@@ -63,16 +63,6 @@ trait PhpSpreadsheetUtils
         }
     }
 
-    public function readString(
-        string $contents,
-        ...$opts
-    ): Generator {
-        $filename = SpreadCompat::getTempFilename();
-        file_put_contents($filename, $contents);
-        yield from $this->readFile($filename, ...$opts);
-        unlink($filename);
-    }
-
     public function readFile(
         string $filename,
         ...$opts
@@ -97,21 +87,9 @@ trait PhpSpreadsheetUtils
             $sheet->freezePane($this->freezePane);
         }
         $class = $this->getWriterClass();
-         /** @var \PhpOffice\PhpSpreadsheet\Writer\Xls|\PhpOffice\PhpSpreadsheet\Writer\Xlsx $writer */
+        /** @var \PhpOffice\PhpSpreadsheet\Writer\Xls|\PhpOffice\PhpSpreadsheet\Writer\Xlsx $writer */
         $writer = new ($class)($spreadsheet);
         return $writer;
-    }
-
-    public function writeString(iterable $data, ...$opts): string
-    {
-        $filename = SpreadCompat::getTempFilename();
-        $this->writeFile($data, $filename);
-        $contents = file_get_contents($filename);
-        if (!$contents) {
-            $contents = "";
-        }
-        unlink($filename);
-        return $contents;
     }
 
     public function writeFile(iterable $data, string $filename, ...$opts): bool
@@ -127,15 +105,7 @@ trait PhpSpreadsheetUtils
         $this->configure(...$opts);
         $writer = $this->getWriter($data);
 
-        header('Content-Type: ' . $this->getMimetype());
-        header(
-            'Content-Disposition: attachment; ' .
-                'filename="' . rawurlencode($filename) . '"; ' .
-                'filename*=UTF-8\'\'' . rawurlencode($filename)
-        );
-        header('Cache-Control: max-age=0');
-        header('Pragma: public');
-
+        SpreadCompat::outputHeaders($this->getMimetype(), $filename);
         ob_end_clean();
         ob_start();
         $writer->save('php://output');

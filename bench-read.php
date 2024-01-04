@@ -4,6 +4,7 @@ use LeKoala\SpreadCompat\Csv\League;
 use LeKoala\SpreadCompat\Csv\Native;
 use LeKoala\SpreadCompat\Csv\OpenSpout;
 use LeKoala\SpreadCompat\Csv\PhpSpreadsheet;
+use LeKoala\SpreadCompat\Xlsx\Native as XlsxNative;
 use LeKoala\SpreadCompat\Xlsx\PhpSpreadsheet as XlsxPhpSpreadsheet;
 use LeKoala\SpreadCompat\Xlsx\OpenSpout as XlsxOpenSpout;
 use LeKoala\SpreadCompat\Xlsx\Simple;
@@ -24,6 +25,7 @@ $xlsx = [
     Simple::class,
     XlsxOpenSpout::class,
     XlsxPhpSpreadsheet::class,
+    XlsxNative::class,
 ];
 
 $reps = 5;
