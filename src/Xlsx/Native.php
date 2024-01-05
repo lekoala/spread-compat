@@ -13,7 +13,7 @@ use LeKoala\SpreadCompat\SpreadCompat;
 use LeKoala\SpreadCompat\Xlsx\XlsxAdapter;
 
 /**
- * This class allows you to read and write csv easily if you
+ * This class allows you to read and write xlsx easily if you
  * don't have Simple or OpenSpout installed
  */
 class Native extends XlsxAdapter
