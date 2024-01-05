@@ -116,11 +116,7 @@ class Native extends CsvAdapter
 
         $stream = SpreadCompat::getMaxMemTempStream();
         $this->write($stream, $data);
-        rewind($stream);
-        $contents = stream_get_contents($stream);
-        if (!$contents) {
-            $contents = "";
-        }
+        $contents = SpreadCompat::getStreamContents($stream);
         fclose($stream);
         return $contents;
     }

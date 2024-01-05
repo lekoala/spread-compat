@@ -98,14 +98,20 @@ class Native extends XlsxAdapter
             'docProps/core.xml' => $this->genCoreXml(),
             'xl/styles.xml' => $this->genStyles(),
             'xl/workbook.xml' => $this->genWorkbook(),
-            'xl/worksheets/sheet1.xml' => $this->genWorksheet($data),
+            // 'xl/worksheets/sheet1.xml' => $this->genWorksheet($data),
             'xl/_rels/workbook.xml.rels' => $this->genWorkbookRels(),
             '[Content_Types].xml' => $this->genContentTypes(),
         ];
 
-        foreach ($allFiles as $path => $data) {
-            $zip->addFile($path, $data);
+        foreach ($allFiles as $path => $xml) {
+            $zip->addFile($path, $xml);
         }
+
+        // End up with worksheet
+        $stream =  $this->genWorksheet($data);
+        rewind($stream);
+        $zip->addFileFromStream('xl/worksheets/sheet1.xml', $stream);
+        fclose($stream);
     }
 
     protected function genRels(): string
@@ -221,10 +227,31 @@ XML;
         // phpcs:enable
     }
 
-    protected function genWorksheet(iterable $data): string
+    /**
+     * @return resource
+     */
+    protected function genWorksheet(iterable $data)
     {
-        $rows = '';
+        $tempStream = SpreadCompat::getMaxMemTempStream();
         $r = 0;
+
+        // Since we don't know in advance, let's have the max
+        $MAX_ROW = 1048576;
+        $MAX_COL = 16384;
+
+        $maxCell = SpreadCompat::excelCell($MAX_ROW, $MAX_COL);
+
+        $header = <<<XML
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+    xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+    <dimension ref="A1:{$maxCell}"/>
+    <cols>
+        <col collapsed="false" hidden="false" max="1024" min="1" style="0" customWidth="false" width="11.5"/>
+    </cols>
+    <sheetData>
+XML;
+        fwrite($tempStream, $header);
 
         $dataRow = [""];
         foreach ($data as $dataRow) {
@@ -233,45 +260,39 @@ XML;
             foreach ($dataRow as $k => $value) {
                 $cn = SpreadCompat::excelCell($r, $i);
 
-                // Auto detect numerical formats
-                if (
-                    !is_string($value)
-                    || $value == '0'
-                    || ($value[0] != '0' && ctype_digit($value))
-                    || preg_match("/^\-?(0|[1-9][0-9]*)(\.[0-9]+)?$/", $value)
-                ) {
-                    $c .= '<c r="' . $cn . '" t="n"><v>' . $value . '</v></c>'; //int,float,currency
+                if (!is_scalar($value) || $value === '') {
+                    $c .= '<c r="' . $cn . '"/>';
                 } else {
-                    $c .= '<c r="' . $cn . '" t="inlineStr"><is><t>' . self::esc($value) . '</t></is></c>';
+                    if (
+                        !is_string($value)
+                        || $value == '0'
+                        || ($value[0] != '0' && ctype_digit($value))
+                        || preg_match("/^\-?(0|[1-9][0-9]*)(\.[0-9]+)?$/", $value)
+                    ) {
+                        $c .= '<c r="' . $cn . '" t="n"><v>' . $value . '</v></c>'; //int,float,currency
+                    } else {
+                        $c .= '<c r="' . $cn . '" t="inlineStr"><is><t>' . self::esc($value) . '</t></is></c>';
+                    }
                 }
                 $c .= "\r\n";
-
                 $i++;
             }
 
             $r++;
-            $rows .= "<row r=\"$r\">$c</row>\r\n";
+            fwrite($tempStream, "<row r=\"$r\">$c</row>\r\n");
         }
 
-        $totalCols = count($dataRow);
-        $maxLetter = SpreadCompat::getLetter($totalCols);
-        $maxRow = $r;
 
-        // phpcs:disable
-        return <<<XML
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
-    xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-    <dimension ref="A1:{$maxLetter}{$maxRow}"/>
-    <cols>
-        <col collapsed="false" hidden="false" max="1024" min="1" style="0" customWidth="false" width="11.5"/>
-    </cols>
-    <sheetData>
-        $rows
+        // $totalCols = count($dataRow);
+        // $maxLetter = SpreadCompat::getLetter($totalCols);
+        // $maxRow = $r;
+
+        $footer = <<<XML
     </sheetData>
 </worksheet>
 XML;
-        // phpcs:enable
+        fwrite($tempStream, $footer);
+        return $tempStream;
     }
 
     protected function genWorkbookRels(): string

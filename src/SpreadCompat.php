@@ -116,6 +116,22 @@ class SpreadCompat
     }
 
     /**
+     * Don't forget fclose afterwards if you don't need the stream anymore
+     *
+     * @param resource $stream
+     */
+    public static function getStreamContents($stream): string
+    {
+        // Rewind to 0 before getting content from the start
+        rewind($stream);
+        $contents = stream_get_contents($stream);
+        if ($contents === false) {
+            $contents = "";
+        }
+        return $contents;
+    }
+
+    /**
      * The memory limit of php://temp can be controlled by appending /maxmemory:NN,
      * where NN is the maximum amount of data to keep in memory before using a temporary file, in bytes.
      *
@@ -124,6 +140,7 @@ class SpreadCompat
     public static function getMaxMemTempStream()
     {
         $mb = 4;
+        // Open for reading and writing; place the file pointer at the beginning of the file.
         $stream = fopen('php://temp/maxmemory:' . ($mb * 1024 * 1024), 'r+');
         if (!$stream) {
             throw new RuntimeException("Failed to open stream");
@@ -136,6 +153,8 @@ class SpreadCompat
      */
     public static function getOutputStream(string $filename = 'php://output')
     {
+        // Open for writing only; place the file pointer at the beginning of the file
+        // and truncate the file to zero length. If the file does not exist, attempt to create it.
         $stream = fopen($filename, 'w');
         if (!$stream) {
             throw new RuntimeException("Failed to open stream");
@@ -148,6 +167,7 @@ class SpreadCompat
      */
     public static function getInputStream(string $filename)
     {
+        // Open for reading only; place the file pointer at the beginning of the file.
         $stream = fopen($filename, 'r');
         if (!$stream) {
             throw new RuntimeException("Failed to open stream");

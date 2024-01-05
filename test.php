@@ -4,6 +4,9 @@ use LeKoala\SpreadCompat\Xlsx\Native;
 use Shuchkin\SimpleXLSXGen;
 
 require './vendor/autoload.php';
+require './res/F.php';
+
+use LeKoala\F;
 
 error_log(-1);
 
@@ -24,6 +27,34 @@ $books = [
 $xlsx = SimpleXLSXGen::fromArray($books);
 // $xlsx->saveAs(__DIR__ . '/.dev/books.xlsx');
 
+// Short style faker data
+
+
+function gen($max = 1_000_000)
+{
+    $i = 0;
+    while ($i < $max) {
+        $i++;
+        yield [
+            $i,
+            F::d(),
+            F::dt(),
+            F::i(10_000, 30_000),
+            $fn = F::fn(),
+            $sn = F::sn(),
+            F::em($fn . $sn),
+            F::uw(5, 10),
+            F::addr(),
+            $ctry = F::ctry(),
+            F::l($ctry),
+            F::b(),
+            F::pick('1', ''),
+            F::m(),
+        ];
+    }
+}
+
 // Yes, you can stream the response directly
+// Even if it has 1 million rows and that it creates a file of 97 mb...
 $native = new Native();
-$native->output($books, 'books.xlsx');
+$native->output(gen(), 'books.xlsx');
