@@ -18,6 +18,8 @@ use LeKoala\SpreadCompat\Xlsx\XlsxAdapter;
  */
 class Native extends XlsxAdapter
 {
+    public bool $stream = false;
+
     public function readFile(
         string $filename,
         ...$opts
@@ -86,7 +88,7 @@ class Native extends XlsxAdapter
     }
 
     /**
-     * @param ZipStream $zip
+     * @param ZipStream|ZipArchive $zip
      * @param iterable $data
      * @return void
      */
@@ -104,13 +106,22 @@ class Native extends XlsxAdapter
         ];
 
         foreach ($allFiles as $path => $xml) {
-            $zip->addFile($path, $xml);
+            if ($zip instanceof ZipArchive) {
+                $zip->addFromString($path, $xml);
+            } else {
+                $zip->addFile($path, $xml);
+            }
         }
 
         // End up with worksheet
-        $stream =  $this->genWorksheet($data);
+        $memory = $zip instanceof ZipArchive ? false : true;
+        $stream =  $this->genWorksheet($data, $memory);
         rewind($stream);
-        $zip->addFileFromStream('xl/worksheets/sheet1.xml', $stream);
+        if ($zip instanceof ZipArchive) {
+            $zip->addFile(SpreadCompat::getTempFilename($stream), $path);
+        } else {
+            $zip->addFileFromStream('xl/worksheets/sheet1.xml', $stream);
+        }
         fclose($stream);
     }
 
@@ -230,9 +241,12 @@ XML;
     /**
      * @return resource
      */
-    protected function genWorksheet(iterable $data)
+    protected function genWorksheet(iterable $data, bool $memory = true)
     {
-        $tempStream = SpreadCompat::getMaxMemTempStream();
+        $tempStream = $memory ? SpreadCompat::getMaxMemTempStream() : tmpfile();
+        if (!$tempStream) {
+            throw new Exception("Failed to get temp file");
+        }
         $r = 0;
 
         // Since we don't know in advance, let's have the max
@@ -281,7 +295,6 @@ XML;
             $r++;
             fwrite($tempStream, "<row r=\"$r\">$c</row>\r\n");
         }
-
 
         // $totalCols = count($dataRow);
         // $maxLetter = SpreadCompat::getLetter($totalCols);
@@ -339,13 +352,25 @@ XML;
         $this->configure(...$opts);
 
         $stream = SpreadCompat::getOutputStream($filename);
-        $zip = new ZipStream(
-            sendHttpHeaders: false,
-            outputStream: $stream,
-            outputName: $filename,
-        );
-        $this->write($zip, $data);
-        $size = $zip->finish();
+
+        if ($this->stream && class_exists(ZipStream::class)) {
+            $zip = new ZipStream(
+                sendHttpHeaders: false,
+                outputStream: $stream,
+                outputName: $filename,
+            );
+            $this->write($zip, $data);
+            $size = $zip->finish();
+        } else {
+            if (is_file($filename)) {
+                unlink($filename); // ZipArchive needs no file
+            }
+            $zip = new ZipArchive();
+            $zip->open($filename, ZipArchive::CREATE);
+            $this->write($zip, $data);
+            $zip->close();
+        }
+
         return fclose($stream);
     }
 
@@ -356,12 +381,28 @@ XML;
     ): void {
         $this->configure(...$opts);
 
-        $zip = new ZipStream(
-            contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            sendHttpHeaders: true,
-            outputName: $filename,
-        );
-        $this->write($zip, $data);
-        $zip->finish();
+        $mime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+        if ($this->stream && class_exists(ZipStream::class)) {
+            $zip = new ZipStream(
+                contentType: $mime,
+                sendHttpHeaders: true,
+                outputName: $filename,
+            );
+            $this->write($zip, $data);
+            $size = $zip->finish();
+        } else {
+            SpreadCompat::outputHeaders($mime, $filename);
+
+            $tempFilename = SpreadCompat::getTempFilename();
+            if (is_file($tempFilename)) {
+                unlink($tempFilename); // ZipArchive needs no file
+            }
+            $zip = new ZipArchive();
+            $zip->open($tempFilename, ZipArchive::CREATE);
+            $this->write($zip, $data);
+            $zip->close();
+            readfile($tempFilename);
+            exit();
+        }
     }
 }

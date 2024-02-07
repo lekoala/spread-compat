@@ -28,6 +28,12 @@ class Options
     public ?string $creator = null;
     public ?string $autofilter = null;
     public ?string $freezePane = null;
+    public ?string $title = null;
+    public ?string $subject = null;
+    public ?string $keywords = null;
+    public ?string $description = null;
+    public ?string $category = null;
+    public ?string $language = null;
 
     public function __construct(...$opts)
     {

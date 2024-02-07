@@ -30,7 +30,7 @@ $xlsx = SimpleXLSXGen::fromArray($books);
 // Short style faker data
 
 
-function gen($max = 1_000_000)
+function gen($max = 100_000)
 {
     $i = 0;
     while ($i < $max) {

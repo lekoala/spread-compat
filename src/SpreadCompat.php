@@ -91,13 +91,19 @@ class SpreadCompat
         return self::getAdapter($ext);
     }
 
-    public static function getTempFilename(): string
+    /**
+     * @param resource $stream
+     * @return string
+     */
+    public static function getTempFilename($stream = null): string
     {
-        $file = tmpfile();
-        if (!$file) {
-            throw new RuntimeException("Could not get temp file");
+        if ($stream === null) {
+            $stream = tmpfile();
+            if (!$stream) {
+                throw new RuntimeException("Could not get temp file");
+            }
         }
-        $filename = stream_get_meta_data($file)['uri'];
+        $filename = stream_get_meta_data($stream)['uri'];
         return $filename;
     }
 
