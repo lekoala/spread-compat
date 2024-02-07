@@ -36,6 +36,9 @@ class Options
     public ?string $category = null;
     public ?string $language = null;
 
+    // Native xlsx
+    public bool $stream = false;
+
     public function __construct(...$opts)
     {
         if (!empty($opts)) {
