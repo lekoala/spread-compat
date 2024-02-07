@@ -83,6 +83,16 @@ class SpreadCompat
         return new ($class);
     }
 
+    public static function getAdapterByName(string $ext, string $name): SpreadInterface
+    {
+        $ext = ucfirst($ext);
+        $class = 'LeKoala\\SpreadCompat\\' . $ext . '\\' . $name;
+        if (!class_exists($class)) {
+            throw new Exception("Invalid adapter $class");
+        }
+        return new ($class);
+    }
+
     public static function getAdapterForFile(string $filename, string $ext = null): SpreadInterface
     {
         if ($ext === null) {

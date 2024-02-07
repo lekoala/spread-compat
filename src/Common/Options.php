@@ -10,6 +10,7 @@ class Options
 
     // Common
     public bool $assoc = false;
+    public ?string $adapter = null;
     /**
      * @var string[]
      */
