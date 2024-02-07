@@ -194,5 +194,31 @@ class SpreadCompatXlsxTest extends TestCase
         ]);
         $this->assertStringContainsString('[Content_Types].xml', $string);
         $this->assertNotEquals($string, $string2);
+
+        // The same, but with stream
+        $Native = new Native();
+        $Native->stream = true;
+        $string = $Native->writeString([
+            [
+                "john", "doe", "john.doe@example.com"
+            ]
+        ]);
+        $this->assertStringContainsString('[Content_Types].xml', $string);
+
+        $Native = new Native();
+        $string2 = $Native->writeString([
+            [
+                "fname", "sname", "email"
+            ],
+            [
+                "john", "doe", "john.doe@example.com"
+            ]
+        ], ...[
+            'autofilter' => 'A1:C1',
+            'freezePane' => 'A1',
+            'strea=' => true,
+        ]);
+        $this->assertStringContainsString('[Content_Types].xml', $string);
+        $this->assertNotEquals($string, $string2);
     }
 }
