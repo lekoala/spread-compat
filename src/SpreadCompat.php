@@ -92,19 +92,20 @@ class SpreadCompat
     }
 
     /**
-     * @param resource $stream
      * @return string
      */
-    public static function getTempFilename($stream = null): string
+    public static function getTempFilename(): string
     {
-        if ($stream === null) {
-            $stream = tmpfile();
-            if (!$stream) {
-                throw new RuntimeException("Could not get temp file");
-            }
+        $result = tempnam(sys_get_temp_dir(), 'S_C'); // windows only use the 3 first letters
+        if ($result === false) {
+            throw new Exception("Unable to create temp file");
         }
-        $filename = stream_get_meta_data($stream)['uri'];
-        return $filename;
+        return $result;
+    }
+
+    public static function isTempFile(string $file): bool
+    {
+        return str_starts_with(basename($file), 'S_C');
     }
 
     /**

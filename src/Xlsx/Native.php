@@ -118,7 +118,11 @@ class Native extends XlsxAdapter
         $stream =  $this->genWorksheet($data, $memory);
         rewind($stream);
         if ($zip instanceof ZipArchive) {
-            $zip->addFile(SpreadCompat::getTempFilename($stream), $path);
+            // $zip->addFile(SpreadCompat::getTempFilename($stream), $path);
+            $contents = stream_get_contents($stream);
+            if ($contents) {
+                $zip->addFromString($contents, $path);
+            }
         } else {
             $zip->addFileFromStream('xl/worksheets/sheet1.xml', $stream);
         }
@@ -362,16 +366,38 @@ XML;
             $this->write($zip, $data);
             $size = $zip->finish();
         } else {
+            $mode = ZipArchive::CREATE;
             if (is_file($filename)) {
-                unlink($filename); // ZipArchive needs no file
+                $mode = ZipArchive::OVERWRITE;
             }
             $zip = new ZipArchive();
-            $zip->open($filename, ZipArchive::CREATE);
+            $result = $zip->open($filename, $mode);
+            if ($result !== true) {
+                throw new Exception("Failed to open zip archive, code: " . self::zipError($result));
+            }
             $this->write($zip, $data);
-            $zip->close();
+            if (!SpreadCompat::isTempFile($filename)) {
+                $zip->close();
+            }
         }
 
         return fclose($stream);
+    }
+
+    protected static function zipError(int $code): string
+    {
+        return match ($code) {
+            ZipArchive::ER_EXISTS => 'File already exists.',
+            ZipArchive::ER_INCONS => 'Zip archive inconsistent.',
+            ZipArchive::ER_INVAL => 'Invalid argument.',
+            ZipArchive::ER_MEMORY => 'Malloc failure.',
+            ZipArchive::ER_NOENT => 'No such file.',
+            ZipArchive::ER_NOZIP => 'Not a zip archive.',
+            ZipArchive::ER_OPEN => 'Can\'t open file.',
+            ZipArchive::ER_READ => 'Read error.',
+            ZipArchive::ER_SEEK => 'Seek error.',
+            default => 'Unknown error code ' . $code . '.',
+        };
     }
 
     public function output(
