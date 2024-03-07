@@ -48,4 +48,17 @@ class SpreadCompatCommonTest extends TestCase
         $this->assertEquals($csvData, $xlsxData);
         $this->assertEquals($csvBomData, $xlsxData);
     }
+
+    public function testCanReadTemp()
+    {
+        // a file without extension
+        $filename = __DIR__ . '/data/basic';
+        $csvData = SpreadCompat::read($filename, ['extension' => 'csv']);
+        $this->assertNotEmpty(iterator_to_array($csvData));
+        $csvData = SpreadCompat::read($filename, extension: 'csv');
+        $this->assertNotEmpty(iterator_to_array($csvData));
+
+        $this->expectException(\Exception::class);
+        $csvData = SpreadCompat::read($filename);
+    }
 }

@@ -29,6 +29,10 @@ class SpreadCompat
 
     public static function getAdapterName(string $ext): string
     {
+        if (!$ext) {
+            throw new Exception("The file has no extension and no extension parameter is set");
+        }
+
         $ext = strtolower($ext);
 
         // Legacy xls is only supported by PhpSpreadsheet
@@ -74,8 +78,8 @@ class SpreadCompat
 
     public static function getAdapter(string $ext): SpreadInterface
     {
-        $ext = ucfirst($ext);
         $name = self::getAdapterName($ext);
+        $ext = ucfirst($ext);
         $class = 'LeKoala\\SpreadCompat\\' . $ext . '\\' . $name;
         if (!class_exists($class)) {
             throw new Exception("Invalid adapter $class");
@@ -256,14 +260,16 @@ class SpreadCompat
         return $r . ($row + 1);
     }
 
+    protected static function getExtensionFromOpts(array $opts, ?string $fallback = null): ?string
+    {
+        return $opts[0]['extension'] ?? $opts['extension'] ?? $fallback;
+    }
+
     public static function read(
         string $filename,
         ...$opts
     ): Generator {
-        $ext = $opts['extension'] ?? null;
-        if ($ext) {
-            $filename = self::ensureExtension($filename, $ext);
-        }
+        $ext = self::getExtensionFromOpts($opts);
         return static::getAdapterForFile($filename, $ext)->readFile($filename, ...$opts);
     }
 
@@ -272,7 +278,7 @@ class SpreadCompat
         string $ext = null,
         ...$opts
     ): Generator {
-        $ext = $opts['extension'] ?? $ext;
+        $ext = self::getExtensionFromOpts($opts, $ext);
         if ($ext === null) {
             $ext = self::getExtensionForContent($contents);
         }
@@ -284,7 +290,7 @@ class SpreadCompat
         string $filename,
         ...$opts
     ): bool {
-        $ext = $opts['extension'] ?? null;
+        $ext = self::getExtensionFromOpts($opts);
         return static::getAdapterForFile($filename, $ext)->writeFile($data, $filename, ...$opts);
     }
 
@@ -293,7 +299,7 @@ class SpreadCompat
         string $filename,
         ...$opts
     ): void {
-        $ext = $opts['extension'] ?? null;
+        $ext = self::getExtensionFromOpts($opts);
         if ($ext) {
             $filename = self::ensureExtension($filename, $ext);
         }

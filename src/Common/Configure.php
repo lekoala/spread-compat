@@ -18,6 +18,11 @@ trait Configure
             }
             // If you passed the array directly instead of ...$opts
             if (is_numeric($k)) {
+                // Proceed
+                if (is_array($v)) {
+                    $this->configure(...$v);
+                    return;
+                }
                 throw new Exception("Invalid key");
             }
             // Ignore invalid properties for this adapter
