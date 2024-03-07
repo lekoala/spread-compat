@@ -261,12 +261,15 @@ class SpreadCompat
     }
 
     /**
-     * @param array<mixed> $opts
+     * This function takes an associative array of options or an array
+     * where the first argument is the associative array
+     * @param array<int,array<string,string>>|array<string,string> $opts
      * @param string|null $fallback
      * @return string|null
      */
     protected static function getExtensionFromOpts(array $opts, ?string $fallback = null): ?string
     {
+        //@phpstan-ignore-next-line PHPStan doesn't detect properly our return type
         return $opts[0]['extension'] ?? $opts['extension'] ?? $fallback;
     }
 
