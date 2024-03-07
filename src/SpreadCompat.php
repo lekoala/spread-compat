@@ -260,6 +260,11 @@ class SpreadCompat
         return $r . ($row + 1);
     }
 
+    /**
+     * @param array<mixed> $opts
+     * @param string|null $fallback
+     * @return string|null
+     */
     protected static function getExtensionFromOpts(array $opts, ?string $fallback = null): ?string
     {
         return $opts[0]['extension'] ?? $opts['extension'] ?? $fallback;
