@@ -32,6 +32,7 @@ class Native extends CsvAdapter
         $separator = $this->getSeparator();
 
         // parse rows and take into account enclosure and escaped parts
+        // we use $this->eol as a separator as a mean to split lines
         /** @var array<string> $data */
         $data = str_getcsv($contents, $this->eol, $this->enclosure, $this->escape);
 
