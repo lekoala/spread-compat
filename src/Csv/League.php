@@ -5,52 +5,21 @@ declare(strict_types=1);
 namespace LeKoala\SpreadCompat\Csv;
 
 use Generator;
+use League\Csv\InvalidArgument;
 use League\Csv\Reader;
 use League\Csv\Writer;
 use League\Csv\CharsetConverter;
 use RuntimeException;
+use SplTempFileObject;
 
 class League extends CsvAdapter
 {
-    protected function read(Reader $csv): Generator
+    public function readString(string $contents, ...$opts): Generator
     {
-        if ($this->separator) {
-            $csv->setDelimiter($this->getSeparator());
-        }
-        if ($this->enclosure) {
-            $csv->setEnclosure($this->enclosure);
-        }
-        if ($this->escape) {
-            $csv->setEscape($this->escape);
-        }
-        if ($this->bom) {
-            $csv->skipInputBOM();
-        } else {
-            $csv->includeInputBOM();
-        }
-        if ($this->inputEncoding) {
-            $encoder = (new \League\Csv\CharsetConverter())
-                ->inputEncoding($this->getInputEncoding() ?? mb_internal_encoding())
-                ->outputEncoding($this->getOutputEncoding() ?? mb_internal_encoding());
-            $csv->addFormatter($encoder);
-        }
-        if ($this->assoc) {
-            $csv->setHeaderOffset(0);
-        }
-        $records = $csv->getRecords();
-        foreach ($records as $record) {
-            yield $record;
-        }
-    }
-
-    public function readString(
-        string $contents,
-        ...$opts
-    ): Generator {
         $this->configure(...$opts);
         $this->configureSeparator($contents);
-        $csv = Reader::createFromString($contents);
-        yield from $this->read($csv);
+
+        return $this->read(Reader::createFromString($contents));
     }
 
     /**
@@ -60,83 +29,106 @@ class League extends CsvAdapter
     {
         $this->configure(...$opts);
         $this->configureSeparator($stream);
-        $csv = Reader::createFromStream($stream);
-        yield from $this->read($csv);
+
+        return $this->read(Reader::createFromStream($stream));
     }
 
-    public function readFile(
-        string $filename,
-        ...$opts
-    ): Generator {
-        $this->configure(...$opts);
-        $stream = fopen($filename, 'r');
-        $this->configureSeparator($stream);
-        if (!$stream) {
-            throw new RuntimeException("Failed to open $filename");
-        }
-        $csv = Reader::createFromStream($stream);
-        yield from $this->read($csv);
-    }
-
-    protected function getWriter(iterable $data): Writer
+    public function readFile(string $filename, ...$opts): Generator
     {
-        $csv = Writer::createFromString();
-        if ($this->separator) {
-            $csv->setDelimiter($this->getSeparator());
-        }
-        if ($this->enclosure) {
-            $csv->setEnclosure($this->enclosure);
-        }
-        if ($this->escape) {
-            $csv->setEscape($this->escape);
-        }
-        if ($this->eol) {
-            $csv->setEndOfLine($this->eol);
-        }
-        if ($this->bom) {
-            $csv->setOutputBOM($this->getBomString());
-        }
-        if ($this->outputEncoding) {
-            $encoder = (new CharsetConverter())
-                ->inputEncoding($this->getInputEncoding() ?? mb_internal_encoding())
-                ->outputEncoding($this->getOutputEncoding() ?? mb_internal_encoding());
-            $csv->addFormatter($encoder);
-        }
-        if (!empty($this->headers)) {
-            $csv->insertOne($this->headers);
-        }
-        $csv->insertAll($data);
-        return $csv;
+        $this->configure(...$opts);
+        $this->configureSeparator($filename);
+
+        return $this->read(Reader::createFromPath($filename));
     }
 
     public function writeString(iterable $data, ...$opts): string
     {
         $this->configure(...$opts);
-        return $this->getWriter($data)->toString();
+        $csv = Writer::createFromString();
+        $this->write($data, $csv);
+
+        return $csv->toString();
     }
 
     public function writeFile(iterable $data, string $filename, ...$opts): bool
     {
-        $this->configure(...$opts);
-        return file_put_contents($filename, $this->writeString($data, ...$opts)) > 0 ? true : false;
+        try {
+            $this->configure(...$opts);
+            $this->write($data, Writer::createFromPath($filename, 'w'));
+
+            return true;
+        } catch (RuntimeException) {
+            return false;
+        }
     }
 
     public function output(iterable $data, string $filename, ...$opts): void
     {
         $this->configure(...$opts);
-        $this->getWriter($data)->output($filename);
-        // ignore returned bytes
+        $csv = Writer::createFromFileObject(new SplTempFileObject());
+        $this->write($data, $csv);
+        $csv->output($filename);
     }
 
-    protected function getBomString(): string
+    protected function read(Reader $csv): Generator
     {
-        return match ($this->getInputEncoding()) {
-            'UTF-16BE' => Writer::BOM_UTF16_BE,
-            'UTF-16LE' => Writer::BOM_UTF16_LE,
-            'UTF-32BE' => Writer::BOM_UTF32_BE,
-            'UTF-32LE' => Writer::BOM_UTF32_LE,
-            'UTF-8' => Writer::BOM_UTF8,
-            default => Writer::BOM_UTF8
-        };
+        $this->initialize($csv);
+
+        if ($this->assoc) {
+            $csv->setHeaderOffset(0);
+        }
+
+        foreach ($csv as $record) {
+            yield $record;
+        }
+    }
+
+    protected function write(iterable $data, Writer $csv): void
+    {
+        $this->initialize($csv);
+
+        $csv->setEndOfLine($this->eol);
+        if ($this->bom) {
+            $csv->setOutputBOM(match ($this->getInputEncoding()) {
+                'UTF-16BE' => Writer::BOM_UTF16_BE,
+                'UTF-16LE' => Writer::BOM_UTF16_LE,
+                'UTF-32BE' => Writer::BOM_UTF32_BE,
+                'UTF-32LE' => Writer::BOM_UTF32_LE,
+                default => Writer::BOM_UTF8
+            });
+        }
+
+        if (!empty($this->headers)) {
+            $csv->insertOne($this->headers);
+        }
+
+        $csv->insertAll($data);
+    }
+
+    /**
+     * @throws InvalidArgument
+     */
+    protected function initialize(Reader|Writer $csv): void
+    {
+        $csv->setDelimiter($this->getSeparator());
+        $csv->setEnclosure($this->enclosure);
+        $csv->setEscape($this->escape);
+        $defaultEncoding = mb_internal_encoding();
+        $inputEncoding = $this->getInputEncoding() ?? $defaultEncoding;
+        $outputEncoding = $this->getOutputEncoding() ?? $defaultEncoding;
+        if ($inputEncoding === $outputEncoding) {
+            return;
+        }
+
+        if ($csv->supportsStreamFilterOnWrite() || $csv->supportsStreamFilterOnRead()) {
+            CharsetConverter::addTo($csv, $inputEncoding, $outputEncoding);
+            return;
+        }
+
+        $csv->addFormatter(
+            (new CharsetConverter())
+            ->inputEncoding($inputEncoding)
+            ->outputEncoding($outputEncoding)
+        );
     }
 }
