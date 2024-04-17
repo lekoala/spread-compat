@@ -24,16 +24,16 @@ class SpreadCompatXlsxTest extends TestCase
     {
         $openSpout = new OpenSpout();
         $data = iterator_to_array($openSpout->readFile(__DIR__ . '/data/empty.xlsx'));
-        $this->assertCount(0, $data);
+        $this->assertCount(0, $data, "Data is : " . json_encode($data));
 
         $openSpout = new OpenSpout();
         $data = iterator_to_array($openSpout->readFile(__DIR__ . '/data/basic.xlsx'));
-        $this->assertCount(1, $data);
+        $this->assertCount(1, $data, "Data is : " . json_encode($data));
         $this->assertCount(3, $data[0]);
 
         $openSpout = new OpenSpout();
         $data = iterator_to_array($openSpout->readFile(__DIR__ . '/data/header.xlsx', assoc: true));
-        $this->assertCount(1, $data);
+        $this->assertCount(1, $data, "Data is : " . json_encode($data));
         $this->assertCount(4, $data[0]);
     }
 

@@ -23,6 +23,7 @@ class OpenSpout extends XlsxAdapter
 
         $headers = [];
         $reader = new Reader($options);
+        // If you have a validation issue saying "Validation failed: no DTD found !" maybe your php version is too old
         $reader->open($filename);
         foreach ($reader->getSheetIterator() as $sheet) {
             foreach ($sheet->getRowIterator() as $row) {
@@ -37,6 +38,7 @@ class OpenSpout extends XlsxAdapter
                 yield $data;
             }
         }
+
         $reader->close();
     }
 
