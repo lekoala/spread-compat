@@ -1,9 +1,9 @@
-name: CI
+name: CI-8.3
 
 on: [push]
 
 env:
-  ACTION_PHP_VERSION: 8.2
+  ACTION_PHP_VERSION: 8.3
   ACTION_PHP_EXTENSIONS: zip
 
 jobs:
@@ -22,14 +22,14 @@ jobs:
       - name: Composer install
         uses: php-actions/composer@v6
         with:
-          php_version: 8.2
+          php_version: 8.3
           php_extensions: zip gd
 
       - name: PHPUnit
         uses: php-actions/phpunit@v3
         with:
           bootstrap: vendor/autoload.php
-          php_version: 8.2
+          php_version: 8.3
           configuration: phpunit.xml.dist
           php_extensions: zip gd
           test_suffix: Test.php
@@ -37,12 +37,12 @@ jobs:
       - name: PHPStan
         uses: php-actions/phpstan@v3
         with:
-          php_version: 8.2
+          php_version: 8.3
           path: src/
 
       - name: PHP Code Sniffer
         uses: php-actions/phpcs@v1
         with:
-          php_version: 8.2
+          php_version: 8.3
           path: src/
           standard: phpcs.xml.dist
