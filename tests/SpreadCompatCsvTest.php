@@ -314,4 +314,21 @@ class SpreadCompatCsvTest extends TestCase
         $expected = file_get_contents(__DIR__ . '/data/separator.csv');
         $this->assertEquals($expected, $string);
     }
+
+    public function testLineSplitCsvNative()
+    {
+        $document = <<<CSV
+Data 2-1,Data 2-2,"Data 2-3
+is on multiple lines
+you see"
+CSV;
+
+        $generator = SpreadCompat::readString($document, 'csv', adapter: SpreadCompat::LEAGUE);
+        $data = iterator_to_array($generator);
+        $this->assertCount(1, $data, "Should be one line");
+
+        $generator = SpreadCompat::readString($document, 'csv', adapter: SpreadCompat::NATIVE);
+        $data = iterator_to_array($generator);
+        $this->assertCount(1, $data, "Should be one line");
+    }
 }

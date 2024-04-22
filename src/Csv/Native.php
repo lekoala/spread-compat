@@ -6,6 +6,7 @@ namespace LeKoala\SpreadCompat\Csv;
 
 use Generator;
 use LeKoala\SpreadCompat\SpreadCompat;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use RuntimeException;
 
 /**
@@ -22,32 +23,10 @@ class Native extends CsvAdapter
         string $contents,
         ...$opts
     ): Generator {
-        $this->configure(...$opts);
-        $this->configureSeparator($contents);
-
-        // check for bom
-        if (strncmp($contents, self::BOM, 3) === 0) {
-            $contents = substr($contents, 3);
-        }
-        $separator = $this->getSeparator();
-
-        // parse rows and take into account enclosure and escaped parts
-        // we use $this->eol as a separator as a mean to split lines
-        /** @var array<string> $data */
-        $data = str_getcsv($contents, $this->eol, $this->enclosure, $this->escape);
-
-        $headers = null;
-        foreach ($data as $line) {
-            $row = str_getcsv($line, $separator, $this->enclosure, $this->escape);
-            if ($this->assoc) {
-                if ($headers === null) {
-                    $headers = $row;
-                    continue;
-                }
-                $row = array_combine($headers, $row);
-            }
-            yield $row;
-        }
+        $temp = SpreadCompat::getMaxMemTempStream();
+        fwrite($temp, $contents);
+        rewind($temp);
+        return $this->readStream($temp, ...$opts);
     }
 
     /**
