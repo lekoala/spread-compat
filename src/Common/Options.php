@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace LeKoala\SpreadCompat\Common;
 
-class Options
+use ArrayAccess;
+
+/**
+ * @implements ArrayAccess<string,mixed>
+ */
+class Options implements ArrayAccess
 {
     use Configure;
 
@@ -44,5 +49,25 @@ class Options
         if (!empty($opts)) {
             $this->configure(...$opts);
         }
+    }
+
+    public function offsetExists(mixed $offset): bool
+    {
+        return property_exists($this, $offset);
+    }
+
+    public function offsetGet(mixed $offset): mixed
+    {
+        return $this->$offset ?? null;
+    }
+
+    public function offsetSet(mixed $offset, mixed $value): void
+    {
+        $this->$offset = $value;
+    }
+
+    public function offsetUnset(mixed $offset): void
+    {
+        $this->$offset = null;
     }
 }

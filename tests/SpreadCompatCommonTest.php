@@ -15,9 +15,15 @@ class SpreadCompatCommonTest extends TestCase
     {
         $options = new Options();
         $options->separator = ";";
+
+        // Can use configure
         $csv = new Native();
         $csv->configure($options);
         $this->assertEquals(";", $csv->separator);
+
+        // Or use directly
+        $csvData = SpreadCompat::read(__DIR__ . '/data/separator.csv', $options);
+        $this->assertNotEmpty(iterator_to_array($csvData));
     }
 
     public function testCanUseNamedArguments()
@@ -60,5 +66,55 @@ class SpreadCompatCommonTest extends TestCase
 
         $this->expectException(\Exception::class);
         $csvData = SpreadCompat::read($filename);
+    }
+
+    public function testCanDetectContentType()
+    {
+        $csv = file_get_contents(__DIR__ . '/data/basic.csv');
+        $this->assertTrue('csv' == SpreadCompat::getExtensionForContent($csv), "Content is: $csv");
+        $xlsx = file_get_contents(__DIR__ . '/data/basic.xlsx');
+        $this->assertTrue('xlsx' == SpreadCompat::getExtensionForContent($xlsx), "Content is: $xlsx");
+    }
+
+    public function testCanSpecifyAdapter()
+    {
+        // Csv, with extension in opts or as param
+        $adapter = SpreadCompat::getAdapterFromOpts([
+            'adapter' => SpreadCompat::NATIVE,
+            'extension' => 'csv'
+        ]);
+        $this->assertInstanceOf(\LeKoala\SpreadCompat\Csv\Native::class, $adapter);
+        $adapter = SpreadCompat::getAdapterFromOpts([
+            'adapter' => SpreadCompat::PHP_SPREADSHEET,
+            'extension' => 'csv'
+        ]);
+        $this->assertInstanceOf(\LeKoala\SpreadCompat\Csv\PhpSpreadsheet::class, $adapter);
+        $adapter = SpreadCompat::getAdapterFromOpts([
+            'adapter' => SpreadCompat::PHP_SPREADSHEET,
+        ], 'csv');
+        $this->assertInstanceOf(\LeKoala\SpreadCompat\Csv\PhpSpreadsheet::class, $adapter);
+        // Xlsx
+        $adapter = SpreadCompat::getAdapterFromOpts([
+            'adapter' => SpreadCompat::PHP_SPREADSHEET,
+        ], 'xlsx');
+        $this->assertInstanceOf(\LeKoala\SpreadCompat\Xlsx\PhpSpreadsheet::class, $adapter);
+        $adapter = SpreadCompat::getAdapterFromOpts([
+            'adapter' => SpreadCompat::NATIVE,
+        ], 'xlsx');
+        $this->assertInstanceOf(\LeKoala\SpreadCompat\Xlsx\Native::class, $adapter);
+        // Can specify full class
+        $adapter = SpreadCompat::getAdapterFromOpts([
+            'adapter' => \LeKoala\SpreadCompat\Xlsx\Native::class,
+        ], 'xlsx');
+        $this->assertInstanceOf(\LeKoala\SpreadCompat\Xlsx\Native::class, $adapter);
+
+        // Make sure it actually works
+        $csv = file_get_contents(__DIR__ . '/data/basic.csv');
+        $csvData = SpreadCompat::readString($csv, null, adapter: SpreadCompat::NATIVE);
+        $this->assertNotEmpty(iterator_to_array($csvData));
+        $options = new Options();
+        $options->adapter = SpreadCompat::NATIVE;
+        $csvData = SpreadCompat::readString($csv, null, $options);
+        $this->assertNotEmpty(iterator_to_array($csvData));
     }
 }

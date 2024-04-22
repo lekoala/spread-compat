@@ -24,7 +24,7 @@ SimpleXLSX: very fast excel import/export
 https://github.com/shuchkin/simplexlsx
 https://github.com/shuchkin/simplexlsxgen
 
-This package will prioritize installed library, by order of performance. You can also pick your preferred adapter for each format like this:
+This package will prioritize installed library, by order of performance. You can also pick your preferred default adapter for each format like this:
 
 ```php
 SpreadCompat::$preferredCsvAdapter = SpreadCompat::NATIVE; // our native csv adapter is the fastest
@@ -80,6 +80,18 @@ You can also use the `Options` class that regroups all available options for all
 $options = new Options();
 $options->separator = ";";
 $data = iterator_to_array(SpreadCompat::read('myfile.csv', $options));
+```
+
+## Setting the adapter
+
+Instead of relying on the static variables, you can choose which adapter to use:
+
+```php
+$csvData = SpreadCompat::readString($csv, adapter: SpreadCompat::NATIVE);
+// or
+$options = new Options();
+$options->adapter = SpreadCompat::NATIVE;
+$csvData = SpreadCompat::readString($csv, $options);
 ```
 
 ## Worksheets

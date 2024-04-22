@@ -80,7 +80,7 @@ class SpreadCompat
     {
         $name = self::getAdapterName($ext);
         $ext = ucfirst($ext);
-        $class = 'LeKoala\\SpreadCompat\\' . $ext . '\\' . $name;
+        $class = '\\LeKoala\\SpreadCompat\\' . $ext . '\\' . $name;
         if (!class_exists($class)) {
             throw new Exception("Invalid adapter $class");
         }
@@ -90,7 +90,7 @@ class SpreadCompat
     public static function getAdapterByName(string $ext, string $name): SpreadInterface
     {
         $ext = ucfirst($ext);
-        $class = 'LeKoala\\SpreadCompat\\' . $ext . '\\' . $name;
+        $class = '\\LeKoala\\SpreadCompat\\' . $ext . '\\' . $name;
         if (!class_exists($class)) {
             throw new Exception("Invalid adapter $class");
         }
@@ -103,6 +103,31 @@ class SpreadCompat
             $ext = pathinfo($filename, PATHINFO_EXTENSION);
         }
         return self::getAdapter($ext);
+    }
+
+    /**
+     * @param array<int,array<string,string>>|array<string,string> $opts
+     * @param ?string $ext
+     * @return ?SpreadInterface
+     */
+    public static function getAdapterFromOpts(array $opts, ?string $ext = null): ?SpreadInterface
+    {
+        $name = $opts[0]['adapter'] ?? $opts['adapter'] ?? null;
+        if ($name === null || !is_string($name)) {
+            return null;
+        }
+        // It's a full class name
+        if (is_a($name, SpreadInterface::class, true)) {
+            return new ($name);
+        }
+        if (!$ext) {
+            $ext = self::getExtensionFromOpts($opts);
+        }
+        // It's a partial name, we need the extension for this
+        if ($ext) {
+            return self::getAdapterByName($ext, $name);
+        }
+        return null;
     }
 
     /**
@@ -128,10 +153,13 @@ class SpreadCompat
      */
     public static function getExtensionForContent(string $contents): string
     {
-        if (ctype_print($contents)) {
-            $ext = self::EXT_CSV;
-        } else {
+        //@link https://gist.github.com/leommoore/f9e57ba2aa4bf197ebc5
+        //50 4b 03 04
+        $header = strtoupper(substr(bin2hex($contents), 0, 8));
+        if ($header === '504B0304') {
             $ext = self::EXT_XLSX;
+        } else {
+            $ext = self::EXT_CSV;
         }
         return $ext;
     }
@@ -269,8 +297,8 @@ class SpreadCompat
      */
     protected static function getExtensionFromOpts(array $opts, ?string $fallback = null): ?string
     {
-        //@phpstan-ignore-next-line PHPStan doesn't detect properly our return type
-        return $opts[0]['extension'] ?? $opts['extension'] ?? $fallback;
+        $ext = $opts[0]['extension'] ?? $opts['extension'] ?? $fallback;
+        return is_string($ext) ? $ext : null;
     }
 
     public static function read(
@@ -278,7 +306,11 @@ class SpreadCompat
         ...$opts
     ): Generator {
         $ext = self::getExtensionFromOpts($opts);
-        return static::getAdapterForFile($filename, $ext)->readFile($filename, ...$opts);
+        $adapter = self::getAdapterFromOpts($opts, $ext);
+        if (!$adapter) {
+            $adapter = static::getAdapterForFile($filename, $ext);
+        }
+        return $adapter->readFile($filename, ...$opts);
     }
 
     public static function readString(
@@ -290,7 +322,11 @@ class SpreadCompat
         if ($ext === null) {
             $ext = self::getExtensionForContent($contents);
         }
-        return static::getAdapter($ext)->readString($contents, ...$opts);
+        $adapter = self::getAdapterFromOpts($opts, $ext);
+        if (!$adapter) {
+            $adapter = static::getAdapter($ext);
+        }
+        return $adapter->readString($contents, ...$opts);
     }
 
     public static function write(
@@ -299,7 +335,27 @@ class SpreadCompat
         ...$opts
     ): bool {
         $ext = self::getExtensionFromOpts($opts);
-        return static::getAdapterForFile($filename, $ext)->writeFile($data, $filename, ...$opts);
+        $adapter = self::getAdapterFromOpts($opts, $ext);
+        if (!$adapter) {
+            $adapter = static::getAdapterForFile($filename, $ext);
+        }
+        return $adapter->writeFile($data, $filename, ...$opts);
+    }
+
+    public static function writeString(
+        iterable $data,
+        string $ext = null,
+        ...$opts
+    ): string {
+        $ext = self::getExtensionFromOpts($opts);
+        $adapter = self::getAdapterFromOpts($opts, $ext);
+        if (!$adapter && !$ext) {
+            throw new Exception("No adapter or extension specified for string");
+        }
+        if (!$adapter) {
+            $adapter = static::getAdapter($ext);
+        }
+        return $adapter->writeString($data, ...$opts);
     }
 
     public static function output(
@@ -311,6 +367,10 @@ class SpreadCompat
         if ($ext) {
             $filename = self::ensureExtension($filename, $ext);
         }
-        static::getAdapterForFile($filename, $ext)->output($data, $filename, ...$opts);
+        $adapter = self::getAdapterFromOpts($opts, $ext);
+        if (!$adapter) {
+            $adapter = static::getAdapterForFile($filename, $ext);
+        }
+        $adapter->output($data, $filename, ...$opts);
     }
 }
