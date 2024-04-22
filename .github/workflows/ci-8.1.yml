@@ -16,7 +16,7 @@ jobs:
       - name: Cache Composer dependencies
         uses: actions/cache@v3
         with:
-          path: /tmp/composer-cache
+          path: /tmp/composer-cache-81
           key: ${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
 
       - name: Composer install
