@@ -2,7 +2,6 @@ parameters:
     level: max
     paths:
         - src
-
     reportUnmatchedIgnoredErrors: true
     ignoreErrors:
         - "#(.*)return type has no value type specified in iterable type array#"
@@ -10,3 +9,7 @@ parameters:
         - "#(.*)has parameter \\$opts with no type specified.#"
         - "#(.*)array_combine expects(.*)#"
         - "#(.*)SpreadInterface but returns object.#"
+        - "#but does not specify its types: TValue#"
+# https://backendtea.com/post/use-phpstan-bleeding-edge/
+includes:
+    - vendor/phpstan/phpstan/conf/bleedingEdge.neon

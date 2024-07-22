@@ -103,40 +103,40 @@ This package supports only 1 worksheet, as it is meant to be able to replace csv
 Since we can compare our solutions, there is a built in bench.php script that give the following results on my machine
 These results are run with:
 
-    openspout/openspout                v4.23.1
-    phpoffice/phpspreadsheet           2.0.0
-    league/csv                         9.15.0
-    shuchkin/simplexlsx                1.1.10
+    openspout/openspout                4.24.4
+    phpoffice/phpspreadsheet           2.1.0
+    league/csv                         9.16.0
+    shuchkin/simplexlsx                1.1.11
     shuchkin/simplexlsxgen             1.4.11
 
 Reading a file with 5000 rows:
 
     Results for csv
-    LeKoala\SpreadCompat\Csv\Native : 0.008
-    LeKoala\SpreadCompat\Csv\League : 0.0313
-    LeKoala\SpreadCompat\Csv\OpenSpout : 0.0971
-    LeKoala\SpreadCompat\Csv\PhpSpreadsheet : 0.659
+    LeKoala\SpreadCompat\Csv\Native : 0.0084
+    LeKoala\SpreadCompat\Csv\League : 0.0317
+    LeKoala\SpreadCompat\Csv\OpenSpout : 0.0993
+    LeKoala\SpreadCompat\Csv\PhpSpreadsheet : 0.6713
 
     Results for xlsx
-    LeKoala\SpreadCompat\Xlsx\Native : 0.0632
-    LeKoala\SpreadCompat\Xlsx\Simple : 0.1433
-    LeKoala\SpreadCompat\Xlsx\PhpSpreadsheet : 0.7388
-    LeKoala\SpreadCompat\Xlsx\OpenSpout : 0.8696
+    LeKoala\SpreadCompat\Xlsx\Native : 0.0639
+    LeKoala\SpreadCompat\Xlsx\Simple : 0.1476
+    LeKoala\SpreadCompat\Xlsx\PhpSpreadsheet : 0.7436
+    LeKoala\SpreadCompat\Xlsx\OpenSpout : 0.8979
 
 
 Write a file with 2500 rows:
 
     Results for csv
-    LeKoala\SpreadCompat\Csv\Native : 0.0056
-    LeKoala\SpreadCompat\Csv\League : 0.0181
-    LeKoala\SpreadCompat\Csv\OpenSpout : 0.0461
-    LeKoala\SpreadCompat\Csv\PhpSpreadsheet : 1.8393
+    LeKoala\SpreadCompat\Csv\Native : 0.0065
+    LeKoala\SpreadCompat\Csv\League : 0.0129
+    LeKoala\SpreadCompat\Csv\OpenSpout : 0.0443
+    LeKoala\SpreadCompat\Csv\PhpSpreadsheet : 0.3668
 
     Results for xlsx
-    LeKoala\SpreadCompat\Xlsx\Native : 0.0386
-    LeKoala\SpreadCompat\Xlsx\Simple : 0.094
-    LeKoala\SpreadCompat\Xlsx\OpenSpout : 0.278
-    LeKoala\SpreadCompat\Xlsx\PhpSpreadsheet : 0.7295
+    LeKoala\SpreadCompat\Xlsx\Native : 0.0401
+    LeKoala\SpreadCompat\Xlsx\Simple : 0.0861
+    LeKoala\SpreadCompat\Xlsx\OpenSpout : 0.2555
+    LeKoala\SpreadCompat\Xlsx\PhpSpreadsheet : 0.674
 
 For simple imports/exports, it's very clear that using the Native adapter is the fastest.
 These are not enabled by default since they might lack some compatibility feature you may require.
