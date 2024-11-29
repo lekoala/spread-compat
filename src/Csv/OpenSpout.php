@@ -76,6 +76,11 @@ class OpenSpout extends CsvAdapter
         return $writer;
     }
 
+    /**
+     * @param iterable<list<bool|\DateInterval|\DateTimeInterface|float|int|string|null>> $data
+     * @param mixed ...$opts
+     * @return string
+     */
     public function writeString(iterable $data, ...$opts): string
     {
         $this->configure(...$opts);
@@ -89,6 +94,12 @@ class OpenSpout extends CsvAdapter
         return $contents;
     }
 
+    /**
+     * @param iterable<list<bool|\DateInterval|\DateTimeInterface|float|int|string|null>> $data
+     * @param string $filename
+     * @param mixed ...$opts
+     * @return bool
+     */
     public function writeFile(iterable $data, string $filename, ...$opts): bool
     {
         $this->configure(...$opts);
@@ -104,6 +115,12 @@ class OpenSpout extends CsvAdapter
         return true;
     }
 
+    /**
+     * @param iterable<list<bool|\DateInterval|\DateTimeInterface|float|int|string|null>> $data
+     * @param string $filename
+     * @param mixed ...$opts
+     * @return void
+     */
     public function output(iterable $data, string $filename, ...$opts): void
     {
         $this->configure(...$opts);

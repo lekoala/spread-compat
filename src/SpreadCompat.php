@@ -6,7 +6,10 @@ namespace LeKoala\SpreadCompat;
 
 use Exception;
 use Generator;
+use LeKoala\SpreadCompat\Common\ZipUtils;
 use RuntimeException;
+use ZipArchive;
+use SimpleXMLElement;
 
 /**
  * This class provides a static facade for adapters
@@ -142,6 +145,13 @@ class SpreadCompat
         return $result;
     }
 
+    public static function stringToTempFile(string $data): string
+    {
+        $filename = self::getTempFilename();
+        file_put_contents($filename, $data);
+        return $filename;
+    }
+
     public static function isTempFile(string $file): bool
     {
         return str_starts_with(basename($file), 'S_C');
@@ -255,9 +265,48 @@ class SpreadCompat
     public static function excelColumnRange(string $lower = 'A', string $upper = 'ZZ'): Generator
     {
         ++$upper;
+        //@phpstan-ignore-next-line
         for ($i = $lower; $i !== $upper; ++$i) {
+            //@phpstan-ignore-next-line
             yield $i;
         }
+    }
+
+    /**
+     * Read properties from an excel file
+     * @param string $filename
+     * @return array{title:string,subject:string,creator:string,description:string,language:string,lastModifiedBy:string,keywords:string,category:string,revision:string}
+     */
+    public static function excelProperties(string $filename)
+    {
+        $zip = new ZipArchive();
+        $zip->open($filename);
+
+        $arr = [
+            'title' => '',
+            'subject' => '',
+            'creator' => '',
+            'description' => '',
+            'language' => '',
+            'lastModifiedBy' => '',
+            'keywords' => '',
+            'category' => '',
+            'revision' => '',
+        ];
+        $props = ZipUtils::getData($zip, 'docProps/core.xml');
+        if (!$props) {
+            return $arr;
+        }
+        $matches = [];
+        preg_match_all("/<(?:dc|cp):([\w]*)>(.*)<\/(?:dc|cp):([\w]*)>/", $props, $matches);
+        $combine = array_combine($matches[1], $matches[2]);
+        if ($combine) {
+            $arr = array_merge($arr, $combine);
+        }
+
+        $zip->close();
+        //@phpstan-ignore-next-line
+        return $arr;
     }
 
     /**

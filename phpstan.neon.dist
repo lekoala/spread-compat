@@ -4,12 +4,13 @@ parameters:
         - src
     reportUnmatchedIgnoredErrors: true
     ignoreErrors:
-        - "#(.*)return type has no value type specified in iterable type array#"
         - "#(.*)with no value type specified in iterable type iterable#"
         - "#(.*)has parameter \\$opts with no type specified.#"
+        - "#Parameter (.*) \\$opts#"
         - "#(.*)array_combine expects(.*)#"
         - "#(.*)SpreadInterface but returns object.#"
         - "#but does not specify its types: TValue#"
+        - "#method_exists(.*) OpenSpout#"
 # https://backendtea.com/post/use-phpstan-bleeding-edge/
 includes:
     - vendor/phpstan/phpstan/conf/bleedingEdge.neon

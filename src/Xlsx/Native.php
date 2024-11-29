@@ -6,6 +6,7 @@ namespace LeKoala\SpreadCompat\Xlsx;
 
 use Exception;
 use Generator;
+use LeKoala\SpreadCompat\Common\ZipUtils;
 use ZipArchive;
 use SimpleXMLElement;
 use ZipStream\ZipStream;
@@ -29,35 +30,19 @@ class Native extends XlsxAdapter
         $zip = new ZipArchive();
         $zip->open($filename);
 
-        $ssData = null;
-        $wsData = null;
-        for ($i = 0; $i < $zip->numFiles; $i++) {
-            $name = $zip->getNameIndex($i);
-            if (!$name) {
-                continue;
-            }
-            if (str_contains($name, 'xl/sharedStrings.xml')) {
-                $ssData = $zip->getFromName($name);
-            } elseif (str_contains($name, 'xl/worksheets/sheet1.xml')) {
-                $wsData = $zip->getFromName($name);
-            }
+        // shared strings
+        $ssXml = null;
+        $ssData = ZipUtils::getData($zip, 'xl/sharedStrings.xml');
+        if ($ssData) {
+            $ssXml = new SimpleXMLElement($ssData);
         }
+
+        // worksheet
+        $wsData = ZipUtils::getData($zip, 'xl/worksheets/sheet1.xml');
         $zip->close();
 
         if (!$wsData) {
             throw new Exception("No data");
-        }
-
-        // Process shared strings. Obviously this doesn't work for super large documents
-        $ss = [];
-        if ($ssData) {
-            $i = 0;
-
-            $ssXml = new SimpleXMLElement($ssData);
-            foreach ($ssXml->children() as $node) {
-                $ss[$i] = (string)$node->t;
-                $i++;
-            }
         }
 
         // Process data
@@ -67,11 +52,14 @@ class Native extends XlsxAdapter
             $r = [];
             foreach ($row->children() as $c) {
                 $t = (string)$c->attributes()->t;
+                $v = (string)$c->v;
 
-                $r[] = match ($t) {
-                    's' => $ss[(int)$c->v] ?? '',
-                    default => (string)$c->v,
-                };
+                // it's a shared string
+                if ($t === 's' && $ssXml) {
+                    $v = $ssXml->si[(int)$c->v]->t ?? '';
+                }
+
+                $r[] = $v;
             }
             if (empty($r) || $r[0] === "") {
                 continue;
@@ -89,7 +77,7 @@ class Native extends XlsxAdapter
 
     /**
      * @param ZipStream|ZipArchive $zip
-     * @param iterable $data
+     * @param iterable<array<float|int|string|\Stringable|null>> $data
      * @return void
      */
     protected function write($zip, iterable $data): void
@@ -243,6 +231,7 @@ XML;
     }
 
     /**
+     * @param iterable<array<float|int|string|\Stringable|null>> $data
      * @return resource
      */
     protected function genWorksheet(iterable $data, bool $memory = true)
@@ -348,6 +337,12 @@ XML;
         return str_replace(['&', '<', '>', "\x00", "\x03", "\x0B"], ['&amp;', '&lt;', '&gt;', '', '', ''], $str);
     }
 
+    /**
+     * @param iterable<array<float|int|string|\Stringable|null>> $data
+     * @param string $filename
+     * @param mixed ...$opts
+     * @return bool
+     */
     public function writeFile(
         iterable $data,
         string $filename,
@@ -373,7 +368,7 @@ XML;
             $zip = new ZipArchive();
             $result = $zip->open($filename, $mode);
             if ($result !== true) {
-                throw new Exception("Failed to open zip archive, code: " . self::zipError($result));
+                throw new Exception("Failed to open zip archive, code: " . ZipUtils::zipError($result));
             }
             $this->write($zip, $data);
             if (!SpreadCompat::isTempFile($filename)) {
@@ -384,22 +379,12 @@ XML;
         return fclose($stream);
     }
 
-    protected static function zipError(int $code): string
-    {
-        return match ($code) {
-            ZipArchive::ER_EXISTS => 'File already exists.',
-            ZipArchive::ER_INCONS => 'Zip archive inconsistent.',
-            ZipArchive::ER_INVAL => 'Invalid argument.',
-            ZipArchive::ER_MEMORY => 'Malloc failure.',
-            ZipArchive::ER_NOENT => 'No such file.',
-            ZipArchive::ER_NOZIP => 'Not a zip archive.',
-            ZipArchive::ER_OPEN => 'Can\'t open file.',
-            ZipArchive::ER_READ => 'Read error.',
-            ZipArchive::ER_SEEK => 'Seek error.',
-            default => 'Unknown error code ' . $code . '.',
-        };
-    }
-
+    /**
+     * @param iterable<array<float|int|string|\Stringable|null>> $data
+     * @param string $filename
+     * @param mixed ...$opts
+     * @return void
+     */
     public function output(
         iterable $data,
         string $filename,

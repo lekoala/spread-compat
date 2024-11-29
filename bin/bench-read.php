@@ -9,10 +9,10 @@ use LeKoala\SpreadCompat\Xlsx\PhpSpreadsheet as XlsxPhpSpreadsheet;
 use LeKoala\SpreadCompat\Xlsx\OpenSpout as XlsxOpenSpout;
 use LeKoala\SpreadCompat\Xlsx\Simple;
 
-require './vendor/autoload.php';
+require dirname(__DIR__) . '/vendor/autoload.php';
 
-$largeCsv = __DIR__ . '/tests/data/large.csv';
-$largeXlsx = __DIR__ . '/tests/data/large.xlsx';
+$largeCsv = dirname(__DIR__) . '/tests/data/large.csv';
+$largeXlsx = dirname(__DIR__) . '/tests/data/large.xlsx';
 
 $csv = [
     League::class,
@@ -67,7 +67,7 @@ foreach ($times as $format => $dataFormat) {
         $results[$class] = $averageTime;
     }
 
-    uasort($results, fn ($a, $b) => $a <=> $b);
+    uasort($results, fn($a, $b) => $a <=> $b);
     foreach ($results as $class => $averageTime) {
         echo "$class : " . $averageTime . PHP_EOL;
     }

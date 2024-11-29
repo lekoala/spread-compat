@@ -42,7 +42,9 @@ class SpreadCompatXlsxTest extends TestCase
         $openSpout = new OpenSpout();
         $string = $openSpout->writeString([
             [
-                "john", "doe", "john.doe@example.com"
+                "john",
+                "doe",
+                "john.doe@example.com"
             ]
         ]);
         $this->assertStringContainsString('[Content_Types].xml', $string);
@@ -50,10 +52,14 @@ class SpreadCompatXlsxTest extends TestCase
         $openSpout = new OpenSpout();
         $string2 = $openSpout->writeString([
             [
-                "firstname", "surname", "email"
+                "firstname",
+                "surname",
+                "email"
             ],
             [
-                "john", "doe", "john.doe@example.com"
+                "john",
+                "doe",
+                "john.doe@example.com"
             ]
         ], ...[
             'autofilter' => 'A1:C1',
@@ -65,6 +71,21 @@ class SpreadCompatXlsxTest extends TestCase
         $coordsOpenSpout = new OpenSpout();
         $coordsOpenSpout->autofilter = 'A1:C1';
         $this->assertEquals([0, 1, 2, 1], $coordsOpenSpout->autofilterCoords());
+
+        $openSpout = new OpenSpout();
+        $openSpout->creator = "test";
+        $string = $openSpout->writeString([
+            [
+                "john",
+                "doe",
+                "john.doe@example.com"
+            ]
+        ]);
+        $this->assertStringContainsString('[Content_Types].xml', $string);
+        $tmpFile = SpreadCompat::stringToTempFile($string);
+        $props = SpreadCompat::excelProperties($tmpFile);
+        $this->assertEquals("test", $props['creator']);
+        $this->assertNotEquals("OpenSpout", $props['creator']);
     }
 
     public function testSpreadsheetCanReadXlsx()
@@ -89,7 +110,9 @@ class SpreadCompatXlsxTest extends TestCase
         $openSpout = new PhpSpreadsheet();
         $string = $openSpout->writeString([
             [
-                "john", "doe", "john.doe@example.com"
+                "john",
+                "doe",
+                "john.doe@example.com"
             ]
         ]);
         $this->assertStringContainsString('[Content_Types].xml', $string);
@@ -97,10 +120,14 @@ class SpreadCompatXlsxTest extends TestCase
         $openSpout = new PhpSpreadsheet();
         $string2 = $openSpout->writeString([
             [
-                "fname", "sname", "email"
+                "fname",
+                "sname",
+                "email"
             ],
             [
-                "john", "doe", "john.doe@example.com"
+                "john",
+                "doe",
+                "john.doe@example.com"
             ]
         ], ...[
             'autofilter' => 'A1:C1',
@@ -132,7 +159,9 @@ class SpreadCompatXlsxTest extends TestCase
         $openSpout = new Simple();
         $string = $openSpout->writeString([
             [
-                "john", "doe", "john.doe@example.com"
+                "john",
+                "doe",
+                "john.doe@example.com"
             ]
         ]);
         $this->assertStringContainsString('[Content_Types].xml', $string);
@@ -140,10 +169,14 @@ class SpreadCompatXlsxTest extends TestCase
         $openSpout = new Simple();
         $string2 = $openSpout->writeString([
             [
-                "fname", "sname", "email"
+                "fname",
+                "sname",
+                "email"
             ],
             [
-                "john", "doe", "john.doe@example.com"
+                "john",
+                "doe",
+                "john.doe@example.com"
             ]
         ], ...[
             'autofilter' => 'A1:C1',
@@ -175,7 +208,9 @@ class SpreadCompatXlsxTest extends TestCase
         $Native = new Native();
         $string = $Native->writeString([
             [
-                "john", "doe", "john.doe@example.com"
+                "john",
+                "doe",
+                "john.doe@example.com"
             ]
         ]);
         $this->assertStringContainsString('[Content_Types].xml', $string);
@@ -183,10 +218,14 @@ class SpreadCompatXlsxTest extends TestCase
         $Native = new Native();
         $string2 = $Native->writeString([
             [
-                "fname", "sname", "email"
+                "fname",
+                "sname",
+                "email"
             ],
             [
-                "john", "doe", "john.doe@example.com"
+                "john",
+                "doe",
+                "john.doe@example.com"
             ]
         ], ...[
             'autofilter' => 'A1:C1',
@@ -200,7 +239,9 @@ class SpreadCompatXlsxTest extends TestCase
         $Native->stream = true;
         $string = $Native->writeString([
             [
-                "john", "doe", "john.doe@example.com"
+                "john",
+                "doe",
+                "john.doe@example.com"
             ]
         ]);
         $this->assertStringContainsString('[Content_Types].xml', $string);
@@ -208,10 +249,14 @@ class SpreadCompatXlsxTest extends TestCase
         $Native = new Native();
         $string2 = $Native->writeString([
             [
-                "fname", "sname", "email"
+                "fname",
+                "sname",
+                "email"
             ],
             [
-                "john", "doe", "john.doe@example.com"
+                "john",
+                "doe",
+                "john.doe@example.com"
             ]
         ], ...[
             'autofilter' => 'A1:C1',

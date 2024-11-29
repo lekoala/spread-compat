@@ -21,12 +21,21 @@ class Simple extends XlsxAdapter
         ...$opts
     ): Generator {
         $this->configure(...$opts);
+
+        /** @var SimpleXLSX|null $xlsx */
         $xlsx = SimpleXLSX::parse($filename);
         if (!$xlsx) {
-            throw new RuntimeException("Parse error: " . (string)SimpleXLSX::parseError());
+            $err = SimpleXLSX::parseError();
+            if (!is_string($err)) {
+                $err = "unknown error";
+            }
+            throw new RuntimeException("Parse error: $err");
         }
         $headers = null;
-        foreach ($xlsx->readRows() as $r) {
+
+        /** @var iterable<array<string>> $rows */
+        $rows = $xlsx->readRows();
+        foreach ($rows as $r) {
             if (empty($r) || $r[0] === "") {
                 continue;
             }
@@ -46,7 +55,12 @@ class Simple extends XlsxAdapter
         if (!is_array($data)) {
             $data = iterator_to_array($data);
         }
+
+        /** @var SimpleXLSXGen|null $xlsx */
         $xlsx = SimpleXLSXGen::fromArray($data);
+        if (!$xlsx) {
+            throw new RuntimeException("Read from array error");
+        }
         if ($this->creator) {
             $xlsx->setAuthor($this->creator);
         }
@@ -59,6 +73,12 @@ class Simple extends XlsxAdapter
         return $xlsx;
     }
 
+    /**
+     * @param iterable<array<float|int|string|\Stringable|null>> $data
+     * @param string $filename
+     * @param mixed ...$opts
+     * @return bool
+     */
     public function writeFile(
         iterable $data,
         string $filename,
@@ -70,6 +90,12 @@ class Simple extends XlsxAdapter
         return true;
     }
 
+    /**
+     * @param iterable<array<float|int|string|\Stringable|null>> $data
+     * @param string $filename
+     * @param mixed ...$opts
+     * @return void
+     */
     public function output(
         iterable $data,
         string $filename,

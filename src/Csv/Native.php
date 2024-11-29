@@ -70,7 +70,7 @@ class Native extends CsvAdapter
 
     /**
      * @param resource $stream
-     * @param iterable $data
+     * @param iterable<array<float|int|string|\Stringable|null>> $data
      * @return void
      */
     protected function write($stream, iterable $data): void
@@ -88,6 +88,11 @@ class Native extends CsvAdapter
         }
     }
 
+    /**
+     * @param iterable<array<float|int|string|\Stringable|null>> $data
+     * @param mixed ...$opts
+     * @return string
+     */
     public function writeString(
         iterable $data,
         ...$opts
@@ -101,6 +106,12 @@ class Native extends CsvAdapter
         return $contents;
     }
 
+    /**
+     * @param iterable<array<float|int|string|\Stringable|null>> $data
+     * @param string $filename
+     * @param mixed ...$opts
+     * @return bool
+     */
     public function writeFile(
         iterable $data,
         string $filename,
@@ -113,6 +124,12 @@ class Native extends CsvAdapter
         return true;
     }
 
+    /**
+     * @param iterable<array<float|int|string|\Stringable|null>> $data
+     * @param string $filename
+     * @param mixed ...$opts
+     * @return void
+     */
     public function output(
         iterable $data,
         string $filename,

@@ -41,6 +41,11 @@ class League extends CsvAdapter
         return $this->read(Reader::createFromPath($filename));
     }
 
+    /**
+     * @param iterable<array<float|int|string|\Stringable|null>> $data
+     * @param mixed ...$opts
+     * @return string
+     */
     public function writeString(iterable $data, ...$opts): string
     {
         $this->configure(...$opts);
@@ -50,6 +55,12 @@ class League extends CsvAdapter
         return $csv->toString();
     }
 
+    /**
+     * @param iterable<array<float|int|string|\Stringable|null>> $data
+     * @param string $filename
+     * @param mixed ...$opts
+     * @return bool
+     */
     public function writeFile(iterable $data, string $filename, ...$opts): bool
     {
         try {
@@ -62,6 +73,12 @@ class League extends CsvAdapter
         }
     }
 
+    /**
+     * @param iterable<array<float|int|string|\Stringable|null>> $data
+     * @param string $filename
+     * @param mixed ...$opts
+     * @return void
+     */
     public function output(iterable $data, string $filename, ...$opts): void
     {
         $this->configure(...$opts);
@@ -83,6 +100,11 @@ class League extends CsvAdapter
         }
     }
 
+    /**
+     * @param iterable<array<float|int|string|\Stringable|null>> $data
+     * @param Writer $csv
+     * @return void
+     */
     protected function write(iterable $data, Writer $csv): void
     {
         $this->initialize($csv);
@@ -127,8 +149,8 @@ class League extends CsvAdapter
 
         $csv->addFormatter(
             (new CharsetConverter())
-            ->inputEncoding($inputEncoding)
-            ->outputEncoding($outputEncoding)
+                ->inputEncoding($inputEncoding)
+                ->outputEncoding($outputEncoding)
         );
     }
 }

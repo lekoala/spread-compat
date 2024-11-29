@@ -9,6 +9,8 @@ Ideally, importing single sheets of csv or excel should be just a matter of chan
 
 ## Supported packages
 
+Native php: very fast csv import/export, but limited features. Can read/output streams.
+
 OpenSpout: fast csv and excel import/export
 https://github.com/openspout/openspout
 
@@ -17,8 +19,6 @@ https://github.com/thephpleague/csv
 
 PhpSpreadsheet: slow excel (xls and xlsx) and csv import/export, but more features
 https://github.com/PHPOffice/PhpSpreadsheet
-
-Native php: very fast csv import/export, but limited features. Can read/output streams.
 
 SimpleXLSX: very fast excel import/export
 https://github.com/shuchkin/simplexlsx
@@ -100,45 +100,13 @@ This package supports only 1 worksheet, as it is meant to be able to replace csv
 
 ## Benchmarks
 
-Since we can compare our solutions, there is a built in bench.php script that give the following results on my machine
-These results are run with:
+Since we can compare our solutions, there is a built in bench script. You can check the results here
 
-    openspout/openspout                4.24.4
-    phpoffice/phpspreadsheet           2.1.0
-    league/csv                         9.16.0
-    shuchkin/simplexlsx                1.1.11
-    shuchkin/simplexlsxgen             1.4.11
+- [read benchmark](docs/bench-read.md)
+- [write benchmark](docs/bench-write.md)
 
-Reading a file with 5000 rows:
+For simple imports/exports, it's very clear that using the `Native` adapter is the fastest.
 
-    Results for csv
-    LeKoala\SpreadCompat\Csv\Native : 0.0084
-    LeKoala\SpreadCompat\Csv\League : 0.0317
-    LeKoala\SpreadCompat\Csv\OpenSpout : 0.0993
-    LeKoala\SpreadCompat\Csv\PhpSpreadsheet : 0.6713
-
-    Results for xlsx
-    LeKoala\SpreadCompat\Xlsx\Native : 0.0639
-    LeKoala\SpreadCompat\Xlsx\Simple : 0.1476
-    LeKoala\SpreadCompat\Xlsx\PhpSpreadsheet : 0.7436
-    LeKoala\SpreadCompat\Xlsx\OpenSpout : 0.8979
-
-
-Write a file with 2500 rows:
-
-    Results for csv
-    LeKoala\SpreadCompat\Csv\Native : 0.0065
-    LeKoala\SpreadCompat\Csv\League : 0.0129
-    LeKoala\SpreadCompat\Csv\OpenSpout : 0.0443
-    LeKoala\SpreadCompat\Csv\PhpSpreadsheet : 0.3668
-
-    Results for xlsx
-    LeKoala\SpreadCompat\Xlsx\Native : 0.0401
-    LeKoala\SpreadCompat\Xlsx\Simple : 0.0861
-    LeKoala\SpreadCompat\Xlsx\OpenSpout : 0.2555
-    LeKoala\SpreadCompat\Xlsx\PhpSpreadsheet : 0.674
-
-For simple imports/exports, it's very clear that using the Native adapter is the fastest.
-These are not enabled by default since they might lack some compatibility feature you may require.
+Otherwise, `league/csv` and `shuchkin/simplexlsx` are great choices.
 
 Stop wasting cpu cycles right now and please use the most efficient adapter :-)

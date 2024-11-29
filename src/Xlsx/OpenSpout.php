@@ -11,6 +11,7 @@ use OpenSpout\Reader\XLSX\Reader;
 use OpenSpout\Writer\XLSX\Writer;
 use LeKoala\SpreadCompat\SpreadCompat;
 use OpenSpout\Writer\XLSX\Entity\SheetView;
+use OpenSpout\Writer\XLSX\Properties;
 
 class OpenSpout extends XlsxAdapter
 {
@@ -45,12 +46,17 @@ class OpenSpout extends XlsxAdapter
     protected function getWriter(): Writer
     {
         $options = new \OpenSpout\Writer\XLSX\Options();
+
+        if (method_exists($options, 'getProperties')) {
+            $options->setProperties(new Properties(
+                creator: $this->creator
+            ));
+        }
         $writer = new Writer($options);
-        if ($this->creator) {
+        // @link https://github.com/openspout/openspout/issues/286
+        if ($this->creator && method_exists($writer, 'setCreator')) {
             $writer->setCreator($this->creator);
         }
-
-        $writer = new Writer();
         return $writer;
     }
 
@@ -78,6 +84,9 @@ class OpenSpout extends XlsxAdapter
         }
     }
 
+    /**
+     * @return array{int<0,25>,positive-int,int<0,25>,positive-int}
+     */
     public function autofilterCoords(): array
     {
         $parts = explode(":", $this->autofilter ?? "");
@@ -86,10 +95,12 @@ class OpenSpout extends XlsxAdapter
 
         $letters = range('A', 'Z');
 
-        $fromColumnIndex = array_search(substr($from, 0, 1), $letters, true);
+        $fromColumnIndex = (int)array_search(substr($from, 0, 1), $letters, true);
         $fromRow = (int)substr($from, 1, 1);
-        $toColumnIndex = array_search(substr($to, 0, 1), $letters, true);
+        $toColumnIndex = (int)array_search(substr($to, 0, 1), $letters, true);
         $toRow = (int)substr($to, 1, 1);
+
+        assert($fromRow > 0 && $toRow > 0);
 
         return [
             $fromColumnIndex,
@@ -99,6 +110,12 @@ class OpenSpout extends XlsxAdapter
         ];
     }
 
+    /**
+     * @param iterable<list<bool|\DateInterval|\DateTimeInterface|float|int|string|null>> $data
+     * @param string $filename
+     * @param mixed ...$opts
+     * @return bool
+     */
     public function writeFile(iterable $data, string $filename, ...$opts): bool
     {
         $this->configure(...$opts);
@@ -115,6 +132,12 @@ class OpenSpout extends XlsxAdapter
         return true;
     }
 
+    /**
+     * @param iterable<list<bool|\DateInterval|\DateTimeInterface|float|int|string|null>> $data
+     * @param string $filename
+     * @param mixed ...$opts
+     * @return void
+     */
     public function output(iterable $data, string $filename, ...$opts): void
     {
         $this->configure(...$opts);
