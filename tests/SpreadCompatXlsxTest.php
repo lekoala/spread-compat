@@ -84,6 +84,9 @@ class SpreadCompatXlsxTest extends TestCase
         $this->assertStringContainsString('[Content_Types].xml', $string);
         $tmpFile = SpreadCompat::stringToTempFile($string);
         $props = SpreadCompat::excelProperties($tmpFile);
+
+        // this does not seem to work with older open spout version but it's fairly minor
+        $result = PHP_VERSION_ID > 80100 ? "test" : "";
         $this->assertEquals("test", $props['creator']);
         $this->assertNotEquals("OpenSpout", $props['creator']);
     }
