@@ -100,7 +100,7 @@ class SpreadCompat
         return new ($class);
     }
 
-    public static function getAdapterForFile(string $filename, string $ext = null): SpreadInterface
+    public static function getAdapterForFile(string $filename, ?string $ext = null): SpreadInterface
     {
         if ($ext === null) {
             $ext = pathinfo($filename, PATHINFO_EXTENSION);
@@ -350,10 +350,8 @@ class SpreadCompat
         return is_string($ext) ? $ext : null;
     }
 
-    public static function read(
-        string $filename,
-        ...$opts
-    ): Generator {
+    public static function read(string $filename, ...$opts): Generator
+    {
         $ext = self::getExtensionFromOpts($opts);
         $adapter = self::getAdapterFromOpts($opts, $ext);
         if (!$adapter) {
@@ -362,11 +360,8 @@ class SpreadCompat
         return $adapter->readFile($filename, ...$opts);
     }
 
-    public static function readString(
-        string $contents,
-        string $ext = null,
-        ...$opts
-    ): Generator {
+    public static function readString(string $contents, ?string $ext = null, ...$opts): Generator
+    {
         $ext = self::getExtensionFromOpts($opts, $ext);
         if ($ext === null) {
             $ext = self::getExtensionForContent($contents);
@@ -378,11 +373,8 @@ class SpreadCompat
         return $adapter->readString($contents, ...$opts);
     }
 
-    public static function write(
-        iterable $data,
-        string $filename,
-        ...$opts
-    ): bool {
+    public static function write(iterable $data, string $filename, ...$opts): bool
+    {
         $ext = self::getExtensionFromOpts($opts);
         $adapter = self::getAdapterFromOpts($opts, $ext);
         if (!$adapter) {
@@ -391,11 +383,8 @@ class SpreadCompat
         return $adapter->writeFile($data, $filename, ...$opts);
     }
 
-    public static function writeString(
-        iterable $data,
-        string $ext = null,
-        ...$opts
-    ): string {
+    public static function writeString(iterable $data, ?string $ext = null, ...$opts): string
+    {
         $ext = self::getExtensionFromOpts($opts);
         $adapter = self::getAdapterFromOpts($opts, $ext);
         if (!$adapter && !$ext) {
