@@ -30,6 +30,7 @@ jobs:
         with:
           bootstrap: vendor/autoload.php
           php_version: 8.1
+          version: 10
           configuration: phpunit.xml.dist
           php_extensions: zip gd
           test_suffix: Test.php
