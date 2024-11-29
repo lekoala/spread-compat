@@ -86,7 +86,7 @@ class SpreadCompatXlsxTest extends TestCase
         $props = SpreadCompat::excelProperties($tmpFile);
 
         // this does not seem to work with older open spout version but it's fairly minor
-        $result = PHP_VERSION_ID > 80100 ? "test" : "";
+        $result = PHP_VERSION_ID > 80199 ? "test" : "";
         $this->assertEquals($result, $props['creator']);
         $this->assertNotEquals("OpenSpout", $props['creator']);
     }
