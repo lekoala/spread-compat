@@ -3,19 +3,19 @@
 use LeKoala\SpreadCompat\Xlsx\Native;
 use Shuchkin\SimpleXLSXGen;
 
-require './vendor/autoload.php';
-require './res/F.php';
+require dirname(__DIR__) . '/vendor/autoload.php';
+require dirname(__DIR__) . '/res/F.php';
 
 use LeKoala\F;
 
 error_log(-1);
 
 $native = new Native();
-$data = $native->readFile(__DIR__ . '/tests/data/header.xlsx');
+$data = $native->readFile(dirname(__DIR__) . '/tests/data/header.xlsx');
 // var_dump(iterator_to_array($data));
 
 $native = new Native();
-$data = $native->readFile(__DIR__ . '/tests/data/header.xlsx', assoc: true);
+$data = $native->readFile(dirname(__DIR__) . '/tests/data/header.xlsx', assoc: true);
 // var_dump(iterator_to_array($data));
 
 
