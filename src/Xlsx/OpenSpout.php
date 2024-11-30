@@ -47,7 +47,7 @@ class OpenSpout extends XlsxAdapter
     {
         $options = new \OpenSpout\Writer\XLSX\Options();
 
-        if (method_exists($options, 'getProperties')) {
+        if (method_exists($options, 'getProperties') && class_exists(Properties::class)) {
             $options->setProperties(new Properties(
                 creator: $this->creator
             ));
