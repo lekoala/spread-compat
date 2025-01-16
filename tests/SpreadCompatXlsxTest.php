@@ -269,4 +269,34 @@ class SpreadCompatXlsxTest extends TestCase
         $this->assertStringContainsString('[Content_Types].xml', $string);
         $this->assertNotEquals($string, $string2);
     }
+
+    public function testNativeDontSkipEmptyCols()
+    {
+
+        $Native = new Native();
+        $Native->assoc = true;
+        $data = $Native->readFile(__DIR__ . '/data/empty-col.xlsx');
+
+        $arr = iterator_to_array($data);
+        $this->assertEquals([
+            [
+                'col1' => "v1",
+                'col2' => "v2",
+                'col3' => null,
+                'col4' => "v4",
+            ],
+            [
+                'col1' => "v1",
+                'col2' => null,
+                'col3' => null,
+                'col4' => "v4",
+            ],
+            [
+                'col1' => null,
+                'col2' => "v2",
+                'col3' => "v3",
+                'col4' => null,
+            ]
+        ], $arr);
+    }
 }

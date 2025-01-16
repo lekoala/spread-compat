@@ -67,7 +67,7 @@ foreach ($xlsx as $cl) {
 }
 
 foreach ($times as $format => $dataFormat) {
-    echo "Results for $format" . PHP_EOL;
+    echo "Results for $format" . PHP_EOL . PHP_EOL;
 
     $results = [];
     foreach ($dataFormat as $class => $times) {

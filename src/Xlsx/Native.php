@@ -45,33 +45,60 @@ class Native extends XlsxAdapter
             throw new Exception("No data");
         }
 
+        $columns = iterator_to_array(SpreadCompat::excelColumnRange());
+        $totalColumns = null;
+
         // Process data
         $wsXml = new SimpleXMLElement($wsData);
         $headers = null;
         foreach ($wsXml->sheetData->children() as $row) {
-            $r = [];
+            $rowData = [];
+
+            $col = 0;
+
+            // blank cells are excluded from xml
             foreach ($row->children() as $c) {
-                $t = (string)$c->attributes()->t;
+                $attrs = $c->attributes();
+
+                $t = (string)$attrs->t;
+                $r = (string)$attrs->r; // cell position, eg A2
                 $v = (string)$c->v;
 
                 // it's a shared string
                 if ($t === 's' && $ssXml) {
-                    $v = $ssXml->si[(int)$c->v]->t ?? '';
+                    $v = (string)$ssXml->si[(int)$c->v]->t ?? '';
                 }
 
-                $r[] = $v;
+                // add as many null values as missing columns
+                $colLetter = preg_replace('/\d/', '', $r);
+                $cellIndex = array_search($colLetter, $columns);
+                while ($cellIndex > $col) {
+                    $rowData[] = null;
+                    $col++;
+                }
+
+                $rowData[] = $v;
+                $col++;
             }
-            if (empty($r) || $r[0] === "") {
+
+            // expand missing columns at the end
+            if ($totalColumns && $col < $totalColumns) {
+                $rowData[] = null;
+                $col++;
+            }
+
+            if (empty($rowData) || $rowData[0] === "") {
                 continue;
             }
             if ($this->assoc) {
                 if ($headers === null) {
-                    $headers = $r;
+                    $headers = $rowData;
+                    $totalColumns = count($headers);
                     continue;
                 }
-                $r = array_combine($headers, $r);
+                $rowData = array_combine($headers, $rowData);
             }
-            yield $r;
+            yield $rowData;
         }
     }
 

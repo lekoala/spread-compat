@@ -9,7 +9,6 @@ use Generator;
 use LeKoala\SpreadCompat\Common\ZipUtils;
 use RuntimeException;
 use ZipArchive;
-use SimpleXMLElement;
 
 /**
  * This class provides a static facade for adapters
