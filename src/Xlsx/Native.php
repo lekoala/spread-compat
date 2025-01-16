@@ -66,6 +66,7 @@ class Native extends XlsxAdapter
 
                 // it's a shared string
                 if ($t === 's' && $ssXml) {
+                    //@phpstan-ignore-next-line
                     $v = (string)$ssXml->si[(int)$c->v]->t ?? '';
                 }
 
