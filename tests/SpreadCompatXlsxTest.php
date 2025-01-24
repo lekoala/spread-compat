@@ -333,5 +333,48 @@ class SpreadCompatXlsxTest extends TestCase
                 'col7' => null,
             ]
         ], $arr);
+
+        $Native = new Native();
+        $data = $Native->readFile(__DIR__ . '/data/empty-col-2.xlsx');
+
+        $arr = iterator_to_array($data);
+        $this->assertEquals([
+            [
+                'col1',
+                'col2',
+                'col3',
+                'col4',
+                'col5',
+                'col6',
+                'col7',
+            ],
+            [
+                "v1",
+                "v2",
+                null,
+                "v4",
+                null,
+                null,
+                null,
+            ],
+            [
+                "v1",
+                null,
+                null,
+                "v4",
+                null,
+                null,
+                null,
+            ],
+            [
+                null,
+                "v2",
+                "v3",
+                null,
+                null,
+                null,
+                null,
+            ]
+        ], $arr);
     }
 }

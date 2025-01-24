@@ -98,6 +98,11 @@ class Native extends XlsxAdapter
                     continue;
                 }
                 $rowData = array_combine($headers, $rowData);
+            } else {
+                // Assume the first row indicates how many cells we want
+                if ($totalColumns === null) {
+                    $totalColumns = count($rowData);
+                }
             }
             yield $rowData;
         }
