@@ -83,7 +83,7 @@ class Native extends XlsxAdapter
             }
 
             // expand missing columns at the end
-            if ($totalColumns && $col < $totalColumns) {
+            while ($totalColumns && $col < $totalColumns) {
                 $rowData[] = null;
                 $col++;
             }
