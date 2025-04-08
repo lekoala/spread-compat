@@ -410,5 +410,9 @@ class SpreadCompatXlsxTest extends TestCase
         $this->assertEquals('1900-09-16', $arr[5]['BirthDate']);
         $this->assertEquals('1899-09-16', $arr[6]['BirthDate']);
         $this->assertEquals('4111-09-16', $arr[7]['BirthDate']);
+        $this->assertTrue('' === $arr[8]['BirthDate']); // it has no t attribute so it is simply a string
+
+        // Invalid dates are treated as strings
+        $this->assertEquals('00/00/0000', $arr[9]['BirthDate']);
     }
 }
