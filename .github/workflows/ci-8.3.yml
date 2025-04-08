@@ -1,20 +1,20 @@
-name: CI
+name: CI-8.3
 
 on: [push]
 
+env:
+  ACTION_PHP_VERSION: 8.3
+  ACTION_PHP_EXTENSIONS: zip
+
 jobs:
-  run:
-    runs-on: ${{ matrix.operating-system }}
-    strategy:
-      matrix:
-        operating-system: ['ubuntu-latest']
-        php-versions: ['8.1', '8.2', '8.3', '8.4']
-        phpunit-versions: ['latest']
+  build-test:
+    runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
       - name: Cache Composer dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /tmp/composer-cache
           key: ${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
@@ -22,24 +22,27 @@ jobs:
       - name: Composer install
         uses: php-actions/composer@v6
         with:
-          php_version: ${{ matrix.php-versions }}
+          php_version: 8.3
           php_extensions: zip gd
 
       - name: PHPUnit
         uses: php-actions/phpunit@v4
         with:
-          php_version: ${{ matrix.php-versions }}
+          bootstrap: vendor/autoload.php
+          php_version: 8.3
           configuration: phpunit.xml.dist
+          php_extensions: zip gd
+          test_suffix: Test.php
 
       - name: PHPStan
         uses: php-actions/phpstan@v3
         with:
-          php_version: ${{ matrix.php-versions }}
+          php_version: 8.3
           path: src/
 
       - name: PHP Code Sniffer
         uses: php-actions/phpcs@v1
         with:
-          php_version: ${{ matrix.php-versions }}
+          php_version: 8.3
           path: src/
           standard: phpcs.xml.dist
