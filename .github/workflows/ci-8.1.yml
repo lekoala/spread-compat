@@ -33,7 +33,6 @@ jobs:
           version: 10
           configuration: phpunit.xml.dist
           php_extensions: zip gd
-          test_suffix: Test.php
 
       - name: PHPStan
         uses: php-actions/phpstan@v3
