@@ -1,0 +1,36 @@
+name: CI
+
+on: [push]
+
+jobs:
+  run:
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      matrix:
+        operating-system: ['ubuntu-latest']
+        php-versions: ['8.1', '8.2', '8.3', '8.4']
+        phpunit-versions: ['latest']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Composer install
+        uses: php-actions/composer@v6
+
+      - name: PHPUnit
+        uses: php-actions/phpunit@v4
+        with:
+          php_version: ${{ matrix.php-versions }}
+          configuration: phpunit.xml.dist
+
+      - name: PHPStan
+        uses: php-actions/phpstan@v3
+        with:
+          php_version: ${{ matrix.php-versions }}
+          path: src/
+
+      - name: PHP Code Sniffer
+        uses: php-actions/phpcs@v1
+        with:
+          php_version: ${{ matrix.php-versions }}
+          path: src/
+          standard: phpcs.xml.dist
