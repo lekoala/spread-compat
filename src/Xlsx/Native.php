@@ -27,6 +27,13 @@ class Native extends XlsxAdapter
     ): Generator {
         $this->configure(...$opts);
 
+        if (!is_file($filename)) {
+            throw new Exception("Invalid file $filename");
+        }
+        if (!is_readable($filename)) {
+            throw new Exception("File $filename is not readable");
+        }
+
         $zip = new ZipArchive();
         $zip->open($filename);
 
@@ -68,6 +75,11 @@ class Native extends XlsxAdapter
                 if ($t === 's' && $ssXml) {
                     //@phpstan-ignore-next-line
                     $v = (string)$ssXml->si[(int)$c->v]->t ?? '';
+                }
+
+                // it's a date
+                if ($t === 'n' && is_numeric($v)) {
+                    $v = SpreadCompat::excelTimeToDate($v);
                 }
 
                 // add as many null values as missing columns

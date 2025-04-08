@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LeKoala\SpreadCompat\Tests;
 
+use Exception;
 use PHPUnit\Framework\TestCase;
 use LeKoala\SpreadCompat\Xlsx\Simple;
 use LeKoala\SpreadCompat\SpreadCompat;
@@ -272,7 +273,6 @@ class SpreadCompatXlsxTest extends TestCase
 
     public function testNativeDontSkipEmptyCols()
     {
-
         $Native = new Native();
         $Native->assoc = true;
         $data = $Native->readFile(__DIR__ . '/data/empty-col.xlsx');
@@ -376,5 +376,39 @@ class SpreadCompatXlsxTest extends TestCase
                 null,
             ]
         ], $arr);
+    }
+
+    public function testNativeThrowProperExceptions()
+    {
+        $Native = new Native();
+        $Native->assoc = true;
+
+        $filename = __DIR__ . '/data/invalid-file.xlsx';
+        $this->expectException(Exception::class);
+        $data = $Native->readFile($filename);
+        $arr = iterator_to_array($data); // triggers reading file
+    }
+
+    public function testNativeDates()
+    {
+        $Native = new Native();
+        $Native->assoc = true;
+        $data = $Native->readFile(__DIR__ . '/data/date.xlsx');
+
+        $arr = iterator_to_array($data);
+
+        $firstRow = $arr[0];
+        $this->assertEquals('2016-10-14', $firstRow['BirthDate']);
+        $this->assertEquals('2025-01-01 10:00:00', $firstRow['Created']);
+        $this->assertEquals('10:00:00', $firstRow['BestTime']);
+
+        // Test that it works even for silly dates
+        $this->assertEquals('1545-01-15', $arr[1]['BirthDate']);
+        $this->assertEquals('2955-12-10', $arr[2]['BirthDate']);
+        $this->assertEquals('1242-09-16', $arr[3]['BirthDate']);
+        $this->assertEquals('1742-09-16', $arr[4]['BirthDate']);
+        $this->assertEquals('1900-09-16', $arr[5]['BirthDate']);
+        $this->assertEquals('1899-09-16', $arr[6]['BirthDate']);
+        $this->assertEquals('4111-09-16', $arr[7]['BirthDate']);
     }
 }

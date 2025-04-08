@@ -272,6 +272,76 @@ class SpreadCompat
     }
 
     /**
+     * Convert date for the 1900 system
+     * @link https://docs.sheetjs.com/docs/csf/features/dates/#1904-and-1900-date-systems
+     * @link https://gist.github.com/benjibee/3e6189e6114bc591128f1d8f5f7c9edd
+     * @link https://github.com/PHPOffice/PhpSpreadsheet/blob/master/src/PhpSpreadsheet/Shared/Date.php#L197-L234
+     */
+    public static function excelTimeToDate(string $value, ?string $format = null): string
+    {
+        if (!is_numeric($value)) {
+            // Return non-numeric values as is, or throw an exception, or return an error string
+            // Depending on desired behavior. Let's return as is for now.
+            return $value;
+        }
+
+        $floatValue = floatval($value);
+
+        // Determine output format if not provided
+        if ($format === null) {
+            if ($floatValue < 1 && $floatValue > 0) {
+                $format = 'H:i:s';
+            } else {
+                $format = str_contains($value, '.') ? 'Y-m-d H:i:s' : 'Y-m-d';
+            }
+        }
+
+        // Base date calculation: Excel day 1 is 1900-01-01, but day 0 is effectively 1899-12-31.
+        // Excel incorrectly treats 1900 as a leap year, so day 60 is Feb 29, 1900 (wrong).
+        // Dates BEFORE day 60 need a base of 1899-12-31, dates AFTER need 1899-12-30 to compensate.
+        $baseDate = $floatValue < 60 && $floatValue > 0 ? '1899-12-31' : '1899-12-30';
+
+        $days = (int) floor($floatValue);
+
+        $partDay = fmod($floatValue, 1);
+
+        if ($days >= 0) {
+            $days = '+' . $days;
+        }
+        $interval = "$days days";
+
+        $dt = new \DateTime($baseDate);
+        $dt->modify($interval);
+
+        if ($partDay > 0) {
+            $hms = 86400 * $partDay;
+            $microseconds = (int) round(fmod($hms, 1) * 1000000);
+            $hms = (int) floor($hms);
+            $hours = intdiv($hms, 3600);
+            $hms -= $hours * 3600;
+            $minutes = intdiv($hms, 60);
+            $seconds = $hms % 60;
+            $dt->setTime($hours, $minutes, $seconds, $microseconds);
+        }
+
+        // For dates in the past, we need even more adjustements
+        // But it would be much better to store these dates in TEXT
+        if ($days < 0) {
+            // Check if the date is before the Gregorian calendar adoption date
+            // This is a bit arbitray and heavily context dependent but it works on our test file
+            if ($dt->getTimestamp() <= strtotime('1582-10-15')) {
+                $year = (int) $dt->format('Y');
+                $diff = floor($year / 100) - floor($year / 400) - 2;
+                if ($diff > 0) {
+                    $dt->modify("- $diff days");
+                }
+            }
+        }
+
+        return $dt->format($format);
+    }
+
+    /**
      * Read properties from an excel file
      * @param string $filename
      * @return array{title:string,subject:string,creator:string,description:string,language:string,lastModifiedBy:string,keywords:string,category:string,revision:string}
