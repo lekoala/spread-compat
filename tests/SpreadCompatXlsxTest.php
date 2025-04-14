@@ -428,9 +428,47 @@ class SpreadCompatXlsxTest extends TestCase
     {
         $Native = new Native();
         $Native->assoc = true;
+        $data = $Native->readFile(__DIR__ . '/data/duration-zero.xlsx');
+
+        // $Simple = new Simple();
+        // $Simple->assoc = true;
+        // $data2 = $Simple->readFile(__DIR__ . '/data/duration-zero.xlsx');
+
+        // Styles : 4 styles, so s=0 is general
+        // t=n s=0 => <numFmt numFmtId="164" formatCode="General"/>
+        // t=n s=1 => <numFmt numFmtId="165" formatCode="yyyy\-mm\-dd"/>
+        // t=n s=2 => <numFmt numFmtId="166" formatCode="@"/>
+
+        $arr = iterator_to_array($data);
+        // $arr2 = iterator_to_array($data2);
+
+        // var_dump($arr);
+        // var_dump($arr2);
+        // die();
+
+        // Even when starting with empty columns, it should return
+        $this->assertCount(2, $arr);
+
+        $row1 = [
+            "Title" => "My Title",
+            "Date" => "2020-09-24",
+            "Start" => "08:00",
+            "Duration" => "610",
+            "Names" => null,
+            "Boolean" => "1",
+            "Extra Title" => null,
+        ];
+        $this->assertEquals($row1, $arr[0]);
+
+        $Native = new Native();
+        $Native->assoc = true;
         $data = $Native->readFile(__DIR__ . '/data/duration.xlsx');
 
-        // Styles
+        // $Simple = new Simple();
+        // $Simple->assoc = true;
+        // $data2 = $Simple->readFile(__DIR__ . '/data/duration.xlsx');
+
+        // Styles : 3 styles, so s=1 is general
         // t=n s=1 => <numFmt numFmtId="164" formatCode="General"/>
         // t=n s=2 => <numFmt numFmtId="165" formatCode="yyyy\-mm\-dd"/>
         // t=n s=3 => <numFmt numFmtId="166" formatCode="@"/>
@@ -438,6 +476,7 @@ class SpreadCompatXlsxTest extends TestCase
         $this->assertTrue(Native::isDateTimeFormatCode('yyyy\-mm\-dd'));
 
         $arr = iterator_to_array($data);
+        // $arr2 = iterator_to_array($data2);
 
         // Even when starting with empty columns, it should return
         $this->assertCount(3, $arr);

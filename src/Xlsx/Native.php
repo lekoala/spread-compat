@@ -47,20 +47,26 @@ class Native extends XlsxAdapter
         // styles
         $stylesXml = null;
         $numericalFormats = [];
+        $cellFormats = [];
         $stylesData = ZipUtils::getData($zip, 'xl/styles.xml');
         if ($stylesData) {
             $stylesXml = new SimpleXMLElement($stylesData);
 
             // Number formats
-            if ($stylesXml->numFmts) {
-                $count = 1;
+            if (isset($stylesXml->numFmts)) {
                 foreach ($stylesXml->numFmts->children() as $fmt) {
                     $attrs = $fmt->attributes();
-                    $numericalFormats[$count] = [
-                        'id' => (int)$attrs->numFmtId,
-                        'code' => (string)$attrs->formatCode,
-                    ];
-                    $count++;
+                    $numericalFormats[(string)$attrs->numFmtId] = (string)$attrs->formatCode;
+                }
+            }
+
+            // s=id matches the cell style, the the number format from numFmts
+            if (isset($stylesXml->cellXfs->xf)) {
+                foreach ($stylesXml->cellXfs->xf as $v) {
+                    $fmtId = $v->attributes()['numFmtId'];
+
+                    // s=x match in order so we can simply use the array index, starting with 0
+                    $cellFormats[] = $numericalFormats[(string)$fmtId] ?? null;
                 }
             }
         }
@@ -102,12 +108,6 @@ class Native extends XlsxAdapter
 
                 $format = null;
 
-                // it's a shared string
-                if ($t === 's' && $ssXml) {
-                    //@phpstan-ignore-next-line
-                    $v = (string)$ssXml->si[(int)$c->v]->t ?? '';
-                }
-
                 // add as many null values as missing columns
                 $colLetter = preg_replace('/\d/', '', $r);
                 $cellIndex = array_search($colLetter, $columns);
@@ -118,15 +118,21 @@ class Native extends XlsxAdapter
 
                 // Now we know which is the current column
 
-                // Dates are stored as numbers
+                // it's a shared string
+                if ($t === 's' && $ssXml) {
+                    //@phpstan-ignore-next-line
+                    $v = (string)$ssXml->si[(int)$c->v]->t ?? '';
+                }
+
+                // it's a number
                 if ($t === 'n' && is_numeric($v)) {
                     // Check if it's a date, see numFmts in styles.xml
-                    $ns = $numericalFormats[$s] ?? null;
-                    if ($ns === null) {
+                    $excelFormat = $cellFormats[$s] ?? null;
+                    if ($excelFormat === null) {
                         // If numerical format is not found, fallback to column format
                         $format = $colFormats[$col] ?? null;
                     } else {
-                        $format = self::isDateTimeFormatCode($ns['code']) ? 'date' : 'number';
+                        $format = self::isDateTimeFormatCode($excelFormat) ? 'date' : 'number';
                     }
                 }
 
