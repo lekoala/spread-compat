@@ -430,9 +430,38 @@ class SpreadCompatXlsxTest extends TestCase
         $Native->assoc = true;
         $data = $Native->readFile(__DIR__ . '/data/duration.xlsx');
 
+        // Styles
+        // t=n s=1 => <numFmt numFmtId="164" formatCode="General"/>
+        // t=n s=2 => <numFmt numFmtId="165" formatCode="yyyy\-mm\-dd"/>
+        // t=n s=3 => <numFmt numFmtId="166" formatCode="@"/>
+
+        $this->assertTrue(Native::isDateTimeFormatCode('yyyy\-mm\-dd'));
+
         $arr = iterator_to_array($data);
 
         // Even when starting with empty columns, it should return
         $this->assertCount(3, $arr);
+
+        $row1 = [
+            "Title" => "My title",
+            "Date" => "2020-09-24",
+            "Start" => "08:00",
+            "Duration" => "610",
+            "Names" => null,
+            "Boolean" => "1",
+            "Extra column" => "",
+        ];
+        $this->assertEquals($row1, $arr[0]);
+
+        $row3 = [
+            "Title" => "",
+            "Date" => "2020-10-07",
+            "Start" => "16:20",
+            "Duration" => "40",
+            "Names" => 'smith, john',
+            "Boolean" => "0",
+            "Extra column" => "My title",
+        ];
+        $this->assertEquals($row3, $arr[2]);
     }
 }

@@ -82,6 +82,7 @@ class Native extends XlsxAdapter
         $wsXml = new SimpleXMLElement($wsData);
         $headers = null;
         $rowCount = 0;
+        $startRow = $this->assoc ? 1 : 0;
         foreach ($wsXml->sheetData->children() as $row) {
             $rowCount++;
             $rowData = [];
@@ -103,7 +104,6 @@ class Native extends XlsxAdapter
 
                 // it's a shared string
                 if ($t === 's' && $ssXml) {
-                    $format = 'string';
                     //@phpstan-ignore-next-line
                     $v = (string)$ssXml->si[(int)$c->v]->t ?? '';
                 }
@@ -124,14 +124,14 @@ class Native extends XlsxAdapter
                     $ns = $numericalFormats[$s] ?? null;
                     if ($ns === null) {
                         // If numerical format is not found, fallback to column format
-                        $format = $colFormats[$col] ?? 'number';
+                        $format = $colFormats[$col] ?? null;
                     } else {
                         $format = self::isDateTimeFormatCode($ns['code']) ? 'date' : 'number';
                     }
                 }
 
-                // Store formatting per column
-                if ($format !== null && $rowCount > 1 && !isset($colFormats[$col])) {
+                // Store formatting per column after first row (excluding header)
+                if ($format !== null && $rowCount > $startRow && !isset($colFormats[$col])) {
                     $colFormats[$col] = $format;
                 }
 
