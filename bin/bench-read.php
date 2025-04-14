@@ -60,7 +60,7 @@ foreach ($xlsx as $cl) {
 
 foreach ($times as $format => $dataFormat) {
     echo "Results for $format" . PHP_EOL . PHP_EOL;
-
+    echo "```" . PHP_EOL;
     $results = [];
     foreach ($dataFormat as $class => $times) {
         $averageTime = round(array_sum($times) / count($times), 4);
@@ -71,6 +71,6 @@ foreach ($times as $format => $dataFormat) {
     foreach ($results as $class => $averageTime) {
         echo "$class : " . $averageTime . PHP_EOL;
     }
-
+    echo "```" . PHP_EOL;
     echo PHP_EOL;
 }
