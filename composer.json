@@ -51,6 +51,7 @@
         "phpunit": "phpunit",
         "phpunit-migrate": "phpunit --migrate-configuration",
         "phpunit-only": "phpunit --group=only",
+        "phpunit-dev": "phpunit --filter=testNativeDates",
         "phpcs": "phpcs",
         "phpstan": "phpstan analyse src/ --memory-limit=-1",
         "serve": "php -S localhost:8001 -t ./",

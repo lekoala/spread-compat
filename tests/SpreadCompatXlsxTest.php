@@ -414,5 +414,25 @@ class SpreadCompatXlsxTest extends TestCase
 
         // Invalid dates are treated as strings
         $this->assertEquals('00/00/0000', $arr[9]['BirthDate']);
+
+        foreach (range(1, 31) as $i) {
+            $r = $arr[9 + $i];
+            if ($r['Surname'] === 'buggy') {
+                continue;
+            }
+            $this->assertEquals('1899-09-16', $r['BirthDate'], "Failed format $i: " . json_encode($r));
+        }
+    }
+
+    public function testNativeDurations()
+    {
+        $Native = new Native();
+        $Native->assoc = true;
+        $data = $Native->readFile(__DIR__ . '/data/duration.xlsx');
+
+        $arr = iterator_to_array($data);
+
+        // Even when starting with empty columns, it should return
+        $this->assertCount(3, $arr);
     }
 }

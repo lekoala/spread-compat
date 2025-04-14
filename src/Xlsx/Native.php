@@ -44,6 +44,27 @@ class Native extends XlsxAdapter
             $ssXml = new SimpleXMLElement($ssData);
         }
 
+        // styles
+        $stylesXml = null;
+        $numericalFormats = [];
+        $stylesData = ZipUtils::getData($zip, 'xl/styles.xml');
+        if ($stylesData) {
+            $stylesXml = new SimpleXMLElement($stylesData);
+
+            // Number formats
+            if ($stylesXml->numFmts) {
+                $count = 1;
+                foreach ($stylesXml->numFmts->children() as $fmt) {
+                    $attrs = $fmt->attributes();
+                    $numericalFormats[$count] = [
+                        'id' => (int)$attrs->numFmtId,
+                        'code' => (string)$attrs->formatCode,
+                    ];
+                    $count++;
+                }
+            }
+        }
+
         // worksheet
         $wsData = ZipUtils::getData($zip, 'xl/worksheets/sheet1.xml');
         $zip->close();
@@ -55,31 +76,36 @@ class Native extends XlsxAdapter
         $columns = iterator_to_array(SpreadCompat::excelColumnRange());
         $totalColumns = null;
 
+        $colFormats = [];
+
         // Process data
         $wsXml = new SimpleXMLElement($wsData);
         $headers = null;
+        $rowCount = 0;
         foreach ($wsXml->sheetData->children() as $row) {
+            $rowCount++;
             $rowData = [];
 
             $col = 0;
+
+            $isEmpty = true;
 
             // blank cells are excluded from xml
             foreach ($row->children() as $c) {
                 $attrs = $c->attributes();
 
-                $t = (string)$attrs->t;
+                $t = (string)$attrs->t; // type : s (string), n (number), ...
                 $r = (string)$attrs->r; // cell position, eg A2
-                $v = (string)$c->v;
+                $s = (int)$attrs->s; // style, eg: 1, 2 ...
+                $v = (string)$c->v; // value
+
+                $format = null;
 
                 // it's a shared string
                 if ($t === 's' && $ssXml) {
+                    $format = 'string';
                     //@phpstan-ignore-next-line
                     $v = (string)$ssXml->si[(int)$c->v]->t ?? '';
-                }
-
-                // it's a date
-                if ($t === 'n' && is_numeric($v)) {
-                    $v = SpreadCompat::excelTimeToDate($v);
                 }
 
                 // add as many null values as missing columns
@@ -88,6 +114,34 @@ class Native extends XlsxAdapter
                 while ($cellIndex > $col) {
                     $rowData[] = null;
                     $col++;
+                }
+
+                // Now we know which is the current column
+
+                // Dates are stored as numbers
+                if ($t === 'n' && is_numeric($v)) {
+                    // Check if it's a date, see numFmts in styles.xml
+                    $ns = $numericalFormats[$s] ?? null;
+                    if ($ns === null) {
+                        // If numerical format is not found, fallback to column format
+                        $format = $colFormats[$col] ?? 'number';
+                    } else {
+                        $format = self::isDateTimeFormatCode($ns['code']) ? 'date' : 'number';
+                    }
+                }
+
+                // Store formatting per column
+                if ($format !== null && $rowCount > 1 && !isset($colFormats[$col])) {
+                    $colFormats[$col] = $format;
+                }
+
+                // Format dates
+                if ($format === 'date') {
+                    $v = SpreadCompat::excelTimeToDate($v);
+                }
+
+                if ($v) {
+                    $isEmpty = false;
                 }
 
                 $rowData[] = $v;
@@ -100,7 +154,7 @@ class Native extends XlsxAdapter
                 $col++;
             }
 
-            if (empty($rowData) || $rowData[0] === "") {
+            if ($isEmpty) {
                 continue;
             }
             if ($this->assoc) {
@@ -109,15 +163,53 @@ class Native extends XlsxAdapter
                     $totalColumns = count($headers);
                     continue;
                 }
-                $rowData = array_combine($headers, $rowData);
+                $rowData = array_combine($headers, array_slice($rowData, 0, $totalColumns));
             } else {
-                // Assume the first row indicates how many cells we want
+                // Assuming the first row indicates how many cells we want
                 if ($totalColumns === null) {
                     $totalColumns = count($rowData);
                 }
             }
             yield $rowData;
         }
+    }
+
+    /**
+     * Is a given number format code a date/time?
+     */
+    public static function isDateTimeFormatCode(string $excelFormatCode): bool
+    {
+        // General
+        if (strtolower($excelFormatCode) === 'general') {
+            return false;
+        }
+        // Currencies, accounting
+        if (str_starts_with($excelFormatCode, '_') || str_starts_with($excelFormatCode, '0 ')) {
+            return false;
+        }
+        // "\C\H\-00000" (Switzerland) and "\D-00000" (Germany).
+        if (str_contains($excelFormatCode, '-00000')) {
+            return false;
+        }
+
+        $cleanCode = str_replace(['[', ']', '.000'], '', $excelFormatCode);
+
+        // Is week
+        if ($cleanCode === 'WW') {
+            return true;
+        }
+
+        // Is time
+        if (str_contains($cleanCode, 'h:m')) {
+            return true;
+        }
+
+        // Is date
+        if (str_contains($cleanCode, 'yy') || str_contains($cleanCode, 'dd') || str_contains($cleanCode, 'mm')) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
