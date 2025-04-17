@@ -60,7 +60,7 @@ class Native extends XlsxAdapter
                 }
             }
 
-            // s=id matches the cell style, the the number format from numFmts
+            // s=id matches the cell style, not the number format from numFmts
             if (isset($stylesXml->cellXfs->xf)) {
                 foreach ($stylesXml->cellXfs->xf as $v) {
                     $fmtId = $v->attributes()['numFmtId'];
