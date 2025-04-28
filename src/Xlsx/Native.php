@@ -52,7 +52,7 @@ class Native extends XlsxAdapter
         if ($stylesData) {
             $stylesXml = new SimpleXMLElement($stylesData);
 
-            // Number formats
+            // Number formats. Built-in formats are optional and may not be included
             if (isset($stylesXml->numFmts)) {
                 foreach ($stylesXml->numFmts->children() as $fmt) {
                     $attrs = $fmt->attributes();
@@ -60,13 +60,22 @@ class Native extends XlsxAdapter
                 }
             }
 
-            // s=id matches the cell style, not the number format from numFmts
+            // s=id matches the cell style, then the number format from numFmts
             if (isset($stylesXml->cellXfs->xf)) {
                 foreach ($stylesXml->cellXfs->xf as $v) {
-                    $fmtId = $v->attributes()['numFmtId'];
+                    /** @var ?\SimpleXMLElement $numFmtId */
+                    $numFmtId = $v->attributes()['numFmtId'];
+                    $fmtId = (string)$numFmtId;
 
                     // s=x match in order so we can simply use the array index, starting with 0
-                    $cellFormats[] = $numericalFormats[(string)$fmtId] ?? null;
+                    $cellFormat = $numericalFormats[$fmtId] ?? null;
+
+                    // built in styles may not be defined
+                    if ($cellFormat === null) {
+                        $cellFormat = self::getBuiltInFormatCode(intval($fmtId));
+                    }
+
+                    $cellFormats[] = $cellFormat;
                 }
             }
         }
@@ -83,6 +92,19 @@ class Native extends XlsxAdapter
         $totalColumns = null;
 
         $colFormats = [];
+
+        // Cache format resolution
+        $isDateCache = [];
+        $isDate = function (?string $excelFormatCode) use (&$isDateCache) {
+            if (!$excelFormatCode) {
+                return false;
+            }
+            if (!isset($isDateCache[$excelFormatCode])) {
+                $result = self::isDateTimeFormatCode($excelFormatCode);
+                $isDateCache[$excelFormatCode] = $result;
+            }
+            return $isDateCache[$excelFormatCode];
+        };
 
         // Process data
         $wsXml = new SimpleXMLElement($wsData);
@@ -103,7 +125,7 @@ class Native extends XlsxAdapter
 
                 $t = (string)$attrs->t; // type : s (string), n (number), ...
                 $r = (string)$attrs->r; // cell position, eg A2
-                $s = (int)$attrs->s; // style, eg: 1, 2 ...
+                $s = $attrs->s; // style, eg: 1, 2 ...
                 $v = (string)$c->v; // value
 
                 $format = null;
@@ -124,15 +146,21 @@ class Native extends XlsxAdapter
                     $v = (string)$ssXml->si[(int)$c->v]->t ?? '';
                 }
 
-                // it's a number
+                // it's formatted (dates may not have a "t" attribute)
+                $excelFormat = null;
+                if ($s !== null) {
+                    $excelFormat = $cellFormats[(int)$s] ?? null;
+                    $format = $isDate($excelFormat) ? 'date' : null;
+                }
+
+                // it's a number (and maybe a date)
                 if ($t === 'n' && is_numeric($v)) {
                     // Check if it's a date, see numFmts in styles.xml
-                    $excelFormat = $cellFormats[$s] ?? null;
                     if ($excelFormat === null) {
                         // If numerical format is not found, fallback to column format
                         $format = $colFormats[$col] ?? null;
                     } else {
-                        $format = self::isDateTimeFormatCode($excelFormat) ? 'date' : 'number';
+                        $format = $isDate($excelFormat) ? 'date' : 'number';
                     }
                 }
 
@@ -178,6 +206,60 @@ class Native extends XlsxAdapter
             }
             yield $rowData;
         }
+    }
+
+    /**
+     * Gets the standard format code for a built-in Open XML number format ID.
+     *
+     * Note: Some formats (especially dates, times, currency) are locale-dependent.
+     * The format codes returned here are common representations (often US English based),
+     * but the actual display might vary in spreadsheet applications based on settings.
+     * Returns null if the ID is not a recognized built-in format ID.
+     *
+     * @param int $numFmtId The built-in number format ID (0-163 range roughly).
+     * @return string|null The corresponding format code string, or null if not found.
+     */
+    public static function getBuiltInFormatCode(int $numFmtId): ?string
+    {
+        return match ($numFmtId) {
+            0 => 'General',
+            1 => '0',
+            2 => '0.00',
+            3 => '#,##0',
+            4 => '#,##0.00',
+            5 => '$#,##0_);($#,##0)', // Often US Dollar, locale dependent
+            6 => '$#,##0_);[Red]($#,##0)', // Often US Dollar, locale dependent
+            7 => '$#,##0.00_);($#,##0.00)', // Often US Dollar, locale dependent
+            8 => '$#,##0.00_);[Red]($#,##0.00)', // Often US Dollar, locale dependent
+            9 => '0%',
+            10 => '0.00%',
+            11 => '0.00E+00',
+            12 => '# ?/?',
+            13 => '# ??/??',
+            14 => 'm/d/yyyy', // Locale-dependent Date
+            15 => 'd-mmm-yy',
+            16 => 'd-mmm',
+            17 => 'mmm-yy',
+            18 => 'h:mm AM/PM', // Locale-dependent Time
+            19 => 'h:mm:ss AM/PM', // Locale-dependent Time
+            20 => 'h:mm',
+            21 => 'h:mm:ss',
+            22 => 'm/d/yyyy h:mm', // Locale-dependent Date & Time
+            37 => '#,##0 ;(#,##0)',
+            38 => '#,##0 ;[Red](#,##0)',
+            39 => '#,##0.00;(#,##0.00)',
+            40 => '#,##0.00;[Red](#,##0.00)',
+            41 => '_(* #,##0_);_(* (#,##0);_(* "-"_);_(@_)', // Accounting
+            42 => '_($* #,##0_);_($* (#,##0);_($* "-"_);_(@_)', // Accounting Currency (locale dep.)
+            43 => '_(* #,##0.00_);_(* (#,##0.00);_(* "-"??_);_(@_)', // Accounting
+            44 => '_($* #,##0.00_);_($* (#,##0.00);_($* "-"??_);_(@_)', // Accounting Currency (locale dep.)
+            45 => 'mm:ss',
+            46 => '[h]:mm:ss',
+            47 => 'mm:ss.0',
+            48 => '##0.0E+0',
+            49 => '@', // Text format
+            default => null,
+        };
     }
 
     /**
