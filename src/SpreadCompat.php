@@ -277,7 +277,7 @@ class SpreadCompat
      * @link https://gist.github.com/benjibee/3e6189e6114bc591128f1d8f5f7c9edd
      * @link https://github.com/PHPOffice/PhpSpreadsheet/blob/master/src/PhpSpreadsheet/Shared/Date.php#L197-L234
      */
-    public static function excelTimeToDate(string $value, ?string $format = null): string
+    public static function excelTimeToDate(float|string $value, ?string $format = null): string
     {
         if (!is_numeric($value)) {
             // Return non-numeric values as is, or throw an exception, or return an error string
@@ -285,7 +285,8 @@ class SpreadCompat
             return $value;
         }
 
-        $floatValue = floatval($value);
+        $floatValue = is_string($value) ? floatval($value) : $value;
+        $value = (string) $value;
 
         // Determine output format if not provided
         if ($format === null) {
@@ -314,14 +315,16 @@ class SpreadCompat
         $dt->modify($interval);
 
         if ($partDay > 0) {
-            $hms = 86400 * $partDay;
-            $microseconds = (int) round(fmod($hms, 1) * 1000000);
-            $hms = (int) floor($hms);
-            $hours = intdiv($hms, 3600);
-            $hms -= $hours * 3600;
-            $minutes = intdiv($hms, 60);
-            $seconds = $hms % 60;
-            $dt->setTime($hours, $minutes, $seconds, $microseconds);
+            // Calculate total seconds in the day part, rounding to the nearest second
+            // to handle floating point inaccuracies like 53099.9999...
+            $totalSeconds = (int) round($partDay * 86400);
+
+            $hours = intdiv($totalSeconds, 3600);
+            $totalSeconds %= 3600; // Get remainder seconds after extracting hours
+            $minutes = intdiv($totalSeconds, 60);
+            $seconds = $totalSeconds % 60;
+
+            $dt->setTime($hours, $minutes, $seconds);
         }
 
         // For dates in the past, we need even more adjustements

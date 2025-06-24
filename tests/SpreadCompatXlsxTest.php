@@ -503,4 +503,12 @@ class SpreadCompatXlsxTest extends TestCase
         ];
         $this->assertEquals($row3, $arr[2]);
     }
+
+    public function testConvertTime()
+    {
+        $t = 45834.614583333;
+        $t2 = '45834.614583333';
+        $this->assertEquals('2025-06-26 14:45:00', SpreadCompat::excelTimeToDate($t));
+        $this->assertEquals('2025-06-26 14:45:00', SpreadCompat::excelTimeToDate($t2));
+    }
 }
