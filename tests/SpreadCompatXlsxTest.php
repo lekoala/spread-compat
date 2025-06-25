@@ -219,6 +219,10 @@ class SpreadCompatXlsxTest extends TestCase
         ]);
         $this->assertStringContainsString('[Content_Types].xml', $string);
 
+        $decoded = $Native->readString($string);
+        $decodedString = json_encode(iterator_to_array($decoded));
+        $this->assertStringContainsString('john.doe@example.com', $decodedString);
+
         $Native = new Native();
         $string2 = $Native->writeString([
             [
@@ -265,10 +269,49 @@ class SpreadCompatXlsxTest extends TestCase
         ], ...[
             'autofilter' => 'A1:C1',
             'freezePane' => 'A1',
-            'strea=' => true,
+            'stream' => true,
         ]);
         $this->assertStringContainsString('[Content_Types].xml', $string);
         $this->assertNotEquals($string, $string2);
+    }
+
+    public function testTempFileWorks()
+    {
+        $tempFile = __DIR__ . '/data/demo-tmp-file.xlsx';
+        $Native = new Native();
+        $decoded = $Native->readFile($tempFile);
+        $decodedString = json_encode(iterator_to_array($decoded));
+        $this->assertStringContainsString('john.doe@example.com', $decodedString);
+    }
+
+    public function testNativeCanWriteFile()
+    {
+        $tempFile = sys_get_temp_dir() . '/tmp_' . time() . '.xlsx';
+        $Native = new Native();
+        $res = $Native->writeFile([
+            [
+                "fname",
+                "sname",
+                "email"
+            ],
+            [
+                "john",
+                "doe",
+                "john.doe@example.com"
+            ]
+        ], $tempFile);
+
+        $this->assertTrue($res);
+        $this->assertTrue(is_file($tempFile));
+
+        $string = file_get_contents($tempFile);
+        $this->assertStringContainsString('[Content_Types].xml', $string);
+
+        $decoded = $Native->readFile($tempFile);
+        $decodedString = json_encode(iterator_to_array($decoded));
+        $this->assertStringContainsString('john.doe@example.com', $decodedString);
+
+        unlink($tempFile);
     }
 
     public function testNativeDontSkipEmptyCols()

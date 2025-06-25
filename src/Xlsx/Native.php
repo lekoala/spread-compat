@@ -123,7 +123,7 @@ class Native extends XlsxAdapter
             foreach ($row->children() as $c) {
                 $attrs = $c->attributes();
 
-                $t = (string)$attrs->t; // type : s (string), n (number), ...
+                $t = (string)$attrs->t; // type : s (string), inlineStr, n (number), ...
                 $r = (string)$attrs->r; // cell position, eg A2
                 $s = $attrs->s; // style, eg: 1, 2 ...
                 $v = (string)$c->v; // value
@@ -144,6 +144,12 @@ class Native extends XlsxAdapter
                 if ($t === 's' && $ssXml) {
                     //@phpstan-ignore-next-line
                     $v = (string)$ssXml->si[(int)$c->v]->t ?? '';
+                } elseif ($t === 'inlineStr') {
+                    if (isset($c->is)) {
+                        $v = (string)$c->is->t;
+                    } else {
+                        $v = (string)$v;
+                    }
                 }
 
                 // it's formatted (dates may not have a "t" attribute)
@@ -330,14 +336,15 @@ class Native extends XlsxAdapter
         $memory = $zip instanceof ZipArchive ? false : true;
         $stream =  $this->genWorksheet($data, $memory);
         rewind($stream);
+
+        $sheetPath = 'xl/worksheets/sheet1.xml';
         if ($zip instanceof ZipArchive) {
-            // $zip->addFile(SpreadCompat::getTempFilename($stream), $path);
             $contents = stream_get_contents($stream);
             if ($contents) {
-                $zip->addFromString($contents, $path);
+                $zip->addFromString($sheetPath, $contents);
             }
         } else {
-            $zip->addFileFromStream('xl/worksheets/sheet1.xml', $stream);
+            $zip->addFileFromStream($sheetPath, $stream);
         }
         fclose($stream);
     }
@@ -590,14 +597,34 @@ XML;
             if (is_file($filename)) {
                 $mode = ZipArchive::OVERWRITE;
             }
+
+            $destinationDir = dirname($filename);
+            if (!is_writable($destinationDir)) {
+                throw new Exception("Directory '$destinationDir' is not writable");
+            }
+
+            // close() will try to rename the file, but we cannot rename to temp dir
+            $isTempDir = $destinationDir === sys_get_temp_dir();
+            if ($isTempDir) {
+                $mode = ZipArchive::CREATE | ZipArchive::OVERWRITE;
+                $baseName = '_xlsx_native.tmp'; // Simply use root folder
+            }
+
             $zip = new ZipArchive();
-            $result = $zip->open($filename, $mode);
+            $result = $zip->open($baseName, $mode);
             if ($result !== true) {
                 throw new Exception("Failed to open zip archive, code: " . ZipUtils::zipError($result));
             }
             $this->write($zip, $data);
-            if (!SpreadCompat::isTempFile($filename)) {
-                $zip->close();
+            $destinationFile = $zip->filename;
+            $closeResult = $zip->close();
+            if ($closeResult === false) {
+                throw new Exception("Failed to close file '$destinationFile'");
+            }
+            if ($isTempDir) {
+                // We cannot rename/copy stuff, so we need to move content directly
+                file_put_contents($filename, file_get_contents($destinationFile));
+                unlink($destinationFile);
             }
         }
 
