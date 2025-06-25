@@ -314,6 +314,41 @@ class SpreadCompatXlsxTest extends TestCase
         unlink($tempFile);
     }
 
+    public function testNativeCanWriteToRegularFolder()
+    {
+        $tempFile = __DIR__ . '/dest/tmp_' . time() . '.xlsx';
+        $tempDir = dirname($tempFile);
+        if (is_dir($tempDir)) {
+            array_map('unlink', glob("$tempDir/*.*"));
+            rmdir($tempDir);
+        }
+        mkdir($tempDir, 0777, true);
+
+        $Native = new Native();
+        $res = $Native->writeFile([
+            [
+                "fname",
+                "sname",
+                "email"
+            ],
+            [
+                "john",
+                "doe",
+                "john.doe@example.com"
+            ]
+        ], $tempFile);
+
+        $string = file_get_contents($tempFile);
+        $this->assertStringContainsString('[Content_Types].xml', $string);
+
+        $decoded = $Native->readFile($tempFile);
+        $decodedString = json_encode(iterator_to_array($decoded));
+        $this->assertStringContainsString('john.doe@example.com', $decodedString);
+
+        unlink($tempFile);
+        rmdir($tempDir);
+    }
+
     public function testNativeDontSkipEmptyCols()
     {
         $Native = new Native();

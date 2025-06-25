@@ -593,23 +593,14 @@ XML;
             $this->write($zip, $data);
             $size = $zip->finish();
         } else {
-            $mode = ZipArchive::CREATE;
-            if (is_file($filename)) {
-                $mode = ZipArchive::OVERWRITE;
-            }
-
             $destinationDir = dirname($filename);
             if (!is_writable($destinationDir)) {
                 throw new Exception("Directory '$destinationDir' is not writable");
             }
 
-            // close() will try to rename the file, but we cannot rename to temp dir
-            $isTempDir = $destinationDir === sys_get_temp_dir();
-            $baseName = $filename;
-            if ($isTempDir) {
-                $mode = ZipArchive::CREATE | ZipArchive::OVERWRITE;
-                $baseName = '_xlsx_native.tmp'; // Simply use root folder
-            }
+            // close() will try to rename the file, but we cannot rename to/from temp dir
+            $mode = ZipArchive::CREATE | ZipArchive::OVERWRITE;
+            $baseName = '_xlsx_native.tmp'; // Simply use root folder
 
             $zip = new ZipArchive();
             $result = $zip->open($baseName, $mode);
@@ -622,11 +613,9 @@ XML;
             if ($closeResult === false) {
                 throw new Exception("Failed to close file '$destinationFile'");
             }
-            if ($isTempDir) {
-                // We cannot rename/copy stuff, so we need to move content directly
-                file_put_contents($filename, file_get_contents($destinationFile));
-                unlink($destinationFile);
-            }
+            // We cannot rename/copy stuff, so we need to move content directly
+            file_put_contents($filename, file_get_contents($destinationFile));
+            unlink($destinationFile);
         }
 
         return fclose($stream);
