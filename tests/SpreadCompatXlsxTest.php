@@ -316,16 +316,7 @@ class SpreadCompatXlsxTest extends TestCase
 
     public function testNativeCanWriteToRegularFolder()
     {
-        $tempFile = __DIR__ . '/dest/tmp_' . time() . '.xlsx';
-        $tempDir = dirname($tempFile);
-        if (is_dir($tempDir)) {
-            array_map('unlink', glob("$tempDir/*.*"));
-            rmdir($tempDir);
-        }
-        mkdir($tempDir, 0777, true);
-
-        $Native = new Native();
-        $res = $Native->writeFile([
+        $data = [
             [
                 "fname",
                 "sname",
@@ -336,7 +327,28 @@ class SpreadCompatXlsxTest extends TestCase
                 "doe",
                 "john.doe@example.com"
             ]
-        ], $tempFile);
+        ];
+        $tempFile = __DIR__ . '/dest/tmp_' . time() . '.xlsx';
+        $tempDir = dirname($tempFile);
+        if (is_dir($tempDir)) {
+            array_map('unlink', glob("$tempDir/*.*"));
+            rmdir($tempDir);
+        }
+        mkdir($tempDir, 0777, true);
+
+        $Native = new Native();
+        $res = $Native->writeFile($data, $tempFile);
+
+        $string = file_get_contents($tempFile);
+        $this->assertStringContainsString('[Content_Types].xml', $string);
+
+        $decoded = $Native->readFile($tempFile);
+        $decodedString = json_encode(iterator_to_array($decoded));
+        $this->assertStringContainsString('john.doe@example.com', $decodedString);
+
+        $Native = new Native();
+        $Native->tempPath = $tempDir; // use tempDir as tempPath instead of root
+        $res = $Native->writeFile($data, $tempFile);
 
         $string = file_get_contents($tempFile);
         $this->assertStringContainsString('[Content_Types].xml', $string);

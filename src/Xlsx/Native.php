@@ -20,6 +20,7 @@ use LeKoala\SpreadCompat\Xlsx\XlsxAdapter;
 class Native extends XlsxAdapter
 {
     public bool $stream = false;
+    public ?string $tempPath = null;
 
     public function readFile(
         string $filename,
@@ -600,7 +601,12 @@ XML;
 
             // close() will try to rename the file, but we cannot rename to/from temp dir
             $mode = ZipArchive::CREATE | ZipArchive::OVERWRITE;
-            $baseName = '_xlsx_native.tmp'; // Simply use root folder
+            // Simply use root folder
+            $baseName = '_xlsx_native.tmp';
+            // Or use specified temp path (should not be the sys temp dir)
+            if ($this->tempPath) {
+                $baseName = $this->tempPath . DIRECTORY_SEPARATOR . $baseName;
+            }
 
             $zip = new ZipArchive();
             $result = $zip->open($baseName, $mode);
