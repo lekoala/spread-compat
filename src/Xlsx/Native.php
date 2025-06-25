@@ -605,6 +605,7 @@ XML;
 
             // close() will try to rename the file, but we cannot rename to temp dir
             $isTempDir = $destinationDir === sys_get_temp_dir();
+            $baseName = $filename;
             if ($isTempDir) {
                 $mode = ZipArchive::CREATE | ZipArchive::OVERWRITE;
                 $baseName = '_xlsx_native.tmp'; // Simply use root folder
