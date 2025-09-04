@@ -476,16 +476,16 @@ XML;
         $r = 0;
 
         // Since we don't know in advance, let's have the max
-        $MAX_ROW = 1048576;
-        $MAX_COL = 16384;
-
-        $maxCell = SpreadCompat::excelCell($MAX_ROW, $MAX_COL);
+        // $MAX_ROW = 1048576;
+        // $MAX_COL = 16384;
+        // $maxCell = SpreadCompat::excelCell($MAX_ROW, $MAX_COL);
+        // This would help to create <dimension ref="A1:XFE1048577"/> but it can be seen as broken
+        // This is why we simply omit the <dimension> tag
 
         $header = <<<XML
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
     xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-    <dimension ref="A1:{$maxCell}"/>
     <cols>
         <col collapsed="false" hidden="false" max="1024" min="1" style="0" customWidth="false" width="11.5"/>
     </cols>
