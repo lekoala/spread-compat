@@ -17,25 +17,25 @@ class SpreadCompatXlsxTest extends TestCase
     public function testFacadeCanReadXlsx()
     {
         $data = iterator_to_array(SpreadCompat::read(__DIR__ . '/data/basic.xlsx'));
-        $this->assertCount(1, $data);
-        $this->assertCount(3, $data[0]);
+        self::assertCount(1, $data);
+        self::assertCount(3, $data[0]);
     }
 
     public function testOpenSpoutCanReadXlsx()
     {
         $openSpout = new OpenSpout();
         $data = iterator_to_array($openSpout->readFile(__DIR__ . '/data/empty.xlsx'));
-        $this->assertCount(0, $data, "Data is : " . json_encode($data));
+        self::assertCount(0, $data, "Data is : " . json_encode($data));
 
         $openSpout = new OpenSpout();
         $data = iterator_to_array($openSpout->readFile(__DIR__ . '/data/basic.xlsx'));
-        $this->assertCount(1, $data, "Data is : " . json_encode($data));
-        $this->assertCount(3, $data[0]);
+        self::assertCount(1, $data, "Data is : " . json_encode($data));
+        self::assertCount(3, $data[0]);
 
         $openSpout = new OpenSpout();
         $data = iterator_to_array($openSpout->readFile(__DIR__ . '/data/header.xlsx', assoc: true));
-        $this->assertCount(1, $data, "Data is : " . json_encode($data));
-        $this->assertCount(4, $data[0]);
+        self::assertCount(1, $data, "Data is : " . json_encode($data));
+        self::assertCount(4, $data[0]);
     }
 
     public function testOpenSpoutCanWriteXlsx()
@@ -48,7 +48,7 @@ class SpreadCompatXlsxTest extends TestCase
                 "john.doe@example.com"
             ]
         ]);
-        $this->assertStringContainsString('[Content_Types].xml', $string);
+        self::assertStringContainsString('[Content_Types].xml', $string);
 
         $openSpout = new OpenSpout();
         $string2 = $openSpout->writeString([
@@ -66,12 +66,12 @@ class SpreadCompatXlsxTest extends TestCase
             'autofilter' => 'A1:C1',
             'freezePane' => 'A1',
         ]);
-        $this->assertStringContainsString('[Content_Types].xml', $string);
-        $this->assertNotEquals($string, $string2);
+        self::assertStringContainsString('[Content_Types].xml', $string);
+        self::assertNotEquals($string, $string2);
 
         $coordsOpenSpout = new OpenSpout();
         $coordsOpenSpout->autofilter = 'A1:C1';
-        $this->assertEquals([0, 1, 2, 1], $coordsOpenSpout->autofilterCoords());
+        self::assertEquals([0, 1, 2, 1], $coordsOpenSpout->autofilterCoords());
 
         $openSpout = new OpenSpout();
         $openSpout->creator = "test";
@@ -82,31 +82,31 @@ class SpreadCompatXlsxTest extends TestCase
                 "john.doe@example.com"
             ]
         ]);
-        $this->assertStringContainsString('[Content_Types].xml', $string);
+        self::assertStringContainsString('[Content_Types].xml', $string);
         $tmpFile = SpreadCompat::stringToTempFile($string);
         $props = SpreadCompat::excelProperties($tmpFile);
 
         // this does not seem to work with older open spout version but it's fairly minor
         $result = PHP_VERSION_ID > 80199 ? "test" : "";
-        $this->assertEquals($result, $props['creator']);
-        $this->assertNotEquals("OpenSpout", $props['creator']);
+        self::assertEquals($result, $props['creator']);
+        self::assertNotEquals("OpenSpout", $props['creator']);
     }
 
     public function testSpreadsheetCanReadXlsx()
     {
         $PhpSpreadsheet = new PhpSpreadsheet();
         $data = iterator_to_array($PhpSpreadsheet->readFile(__DIR__ . '/data/empty.xlsx'));
-        $this->assertCount(0, $data);
+        self::assertCount(0, $data);
 
         $PhpSpreadsheet = new PhpSpreadsheet();
         $data = iterator_to_array($PhpSpreadsheet->readFile(__DIR__ . '/data/basic.xlsx'));
-        $this->assertCount(1, $data);
-        $this->assertCount(3, $data[0]);
+        self::assertCount(1, $data);
+        self::assertCount(3, $data[0]);
 
         $PhpSpreadsheet = new PhpSpreadsheet();
         $data = iterator_to_array($PhpSpreadsheet->readFile(__DIR__ . '/data/header.xlsx', assoc: true));
-        $this->assertCount(1, $data);
-        $this->assertCount(4, $data[0]);
+        self::assertCount(1, $data);
+        self::assertCount(4, $data[0]);
     }
 
     public function testSpreadsheetCanWriteXlsx()
@@ -119,7 +119,7 @@ class SpreadCompatXlsxTest extends TestCase
                 "john.doe@example.com"
             ]
         ]);
-        $this->assertStringContainsString('[Content_Types].xml', $string);
+        self::assertStringContainsString('[Content_Types].xml', $string);
 
         $openSpout = new PhpSpreadsheet();
         $string2 = $openSpout->writeString([
@@ -137,25 +137,25 @@ class SpreadCompatXlsxTest extends TestCase
             'autofilter' => 'A1:C1',
             'freezePane' => 'A1',
         ]);
-        $this->assertStringContainsString('[Content_Types].xml', $string);
-        $this->assertNotEquals($string, $string2);
+        self::assertStringContainsString('[Content_Types].xml', $string);
+        self::assertNotEquals($string, $string2);
     }
 
     public function testSimpleCanReadXlsx()
     {
         $Simple = new Simple();
         $data = iterator_to_array($Simple->readFile(__DIR__ . '/data/empty.xlsx'));
-        $this->assertCount(0, $data);
+        self::assertCount(0, $data);
 
         $Simple = new Simple();
         $data = iterator_to_array($Simple->readFile(__DIR__ . '/data/basic.xlsx'));
-        $this->assertCount(1, $data);
-        $this->assertCount(3, $data[0]);
+        self::assertCount(1, $data);
+        self::assertCount(3, $data[0]);
 
         $Simple = new Simple();
         $data = iterator_to_array($Simple->readFile(__DIR__ . '/data/header.xlsx', assoc: true));
-        $this->assertCount(1, $data);
-        $this->assertCount(4, $data[0]);
+        self::assertCount(1, $data);
+        self::assertCount(4, $data[0]);
     }
 
     public function testSimpleCanWriteXlsx()
@@ -168,7 +168,7 @@ class SpreadCompatXlsxTest extends TestCase
                 "john.doe@example.com"
             ]
         ]);
-        $this->assertStringContainsString('[Content_Types].xml', $string);
+        self::assertStringContainsString('[Content_Types].xml', $string);
 
         $openSpout = new Simple();
         $string2 = $openSpout->writeString([
@@ -186,25 +186,25 @@ class SpreadCompatXlsxTest extends TestCase
             'autofilter' => 'A1:C1',
             'freezePane' => 'A1',
         ]);
-        $this->assertStringContainsString('[Content_Types].xml', $string);
-        $this->assertNotEquals($string, $string2);
+        self::assertStringContainsString('[Content_Types].xml', $string);
+        self::assertNotEquals($string, $string2);
     }
 
     public function testNativeCanReadXlsx()
     {
         $Native = new Native();
         $data = iterator_to_array($Native->readFile(__DIR__ . '/data/empty.xlsx'));
-        $this->assertCount(0, $data);
+        self::assertCount(0, $data);
 
         $Native = new Native();
         $data = iterator_to_array($Native->readFile(__DIR__ . '/data/basic.xlsx'));
-        $this->assertCount(1, $data);
-        $this->assertCount(3, $data[0]);
+        self::assertCount(1, $data);
+        self::assertCount(3, $data[0]);
 
         $Native = new Native();
         $data = iterator_to_array($Native->readFile(__DIR__ . '/data/header.xlsx', assoc: true));
-        $this->assertCount(1, $data);
-        $this->assertCount(4, $data[0]);
+        self::assertCount(1, $data);
+        self::assertCount(4, $data[0]);
     }
 
     public function testNativeCanWriteXlsx()
@@ -217,11 +217,11 @@ class SpreadCompatXlsxTest extends TestCase
                 "john.doe@example.com"
             ]
         ]);
-        $this->assertStringContainsString('[Content_Types].xml', $string);
+        self::assertStringContainsString('[Content_Types].xml', $string);
 
         $decoded = $Native->readString($string);
         $decodedString = json_encode(iterator_to_array($decoded));
-        $this->assertStringContainsString('john.doe@example.com', $decodedString);
+        self::assertStringContainsString('john.doe@example.com', $decodedString);
 
         $Native = new Native();
         $string2 = $Native->writeString([
@@ -239,8 +239,8 @@ class SpreadCompatXlsxTest extends TestCase
             'autofilter' => 'A1:C1',
             'freezePane' => 'A1',
         ]);
-        $this->assertStringContainsString('[Content_Types].xml', $string);
-        $this->assertNotEquals($string, $string2);
+        self::assertStringContainsString('[Content_Types].xml', $string);
+        self::assertNotEquals($string, $string2);
 
         // The same, but with stream
         $Native = new Native();
@@ -252,7 +252,7 @@ class SpreadCompatXlsxTest extends TestCase
                 "john.doe@example.com"
             ]
         ]);
-        $this->assertStringContainsString('[Content_Types].xml', $string);
+        self::assertStringContainsString('[Content_Types].xml', $string);
 
         $Native = new Native();
         $string2 = $Native->writeString([
@@ -271,8 +271,8 @@ class SpreadCompatXlsxTest extends TestCase
             'freezePane' => 'A1',
             'stream' => true,
         ]);
-        $this->assertStringContainsString('[Content_Types].xml', $string);
-        $this->assertNotEquals($string, $string2);
+        self::assertStringContainsString('[Content_Types].xml', $string);
+        self::assertNotEquals($string, $string2);
     }
 
     public function testTempFileWorks()
@@ -281,7 +281,7 @@ class SpreadCompatXlsxTest extends TestCase
         $Native = new Native();
         $decoded = $Native->readFile($tempFile);
         $decodedString = json_encode(iterator_to_array($decoded));
-        $this->assertStringContainsString('john.doe@example.com', $decodedString);
+        self::assertStringContainsString('john.doe@example.com', $decodedString);
     }
 
     public function testNativeCanWriteFile()
@@ -301,15 +301,15 @@ class SpreadCompatXlsxTest extends TestCase
             ]
         ], $tempFile);
 
-        $this->assertTrue($res);
-        $this->assertTrue(is_file($tempFile));
+        self::assertTrue($res);
+        self::assertTrue(is_file($tempFile));
 
         $string = file_get_contents($tempFile);
-        $this->assertStringContainsString('[Content_Types].xml', $string);
+        self::assertStringContainsString('[Content_Types].xml', $string);
 
         $decoded = $Native->readFile($tempFile);
         $decodedString = json_encode(iterator_to_array($decoded));
-        $this->assertStringContainsString('john.doe@example.com', $decodedString);
+        self::assertStringContainsString('john.doe@example.com', $decodedString);
 
         unlink($tempFile);
     }
@@ -340,22 +340,22 @@ class SpreadCompatXlsxTest extends TestCase
         $res = $Native->writeFile($data, $tempFile);
 
         $string = file_get_contents($tempFile);
-        $this->assertStringContainsString('[Content_Types].xml', $string);
+        self::assertStringContainsString('[Content_Types].xml', $string);
 
         $decoded = $Native->readFile($tempFile);
         $decodedString = json_encode(iterator_to_array($decoded));
-        $this->assertStringContainsString('john.doe@example.com', $decodedString);
+        self::assertStringContainsString('john.doe@example.com', $decodedString);
 
         $Native = new Native();
         $Native->tempPath = $tempDir; // use tempDir as tempPath instead of root
         $res = $Native->writeFile($data, $tempFile);
 
         $string = file_get_contents($tempFile);
-        $this->assertStringContainsString('[Content_Types].xml', $string);
+        self::assertStringContainsString('[Content_Types].xml', $string);
 
         $decoded = $Native->readFile($tempFile);
         $decodedString = json_encode(iterator_to_array($decoded));
-        $this->assertStringContainsString('john.doe@example.com', $decodedString);
+        self::assertStringContainsString('john.doe@example.com', $decodedString);
 
         unlink($tempFile);
         rmdir($tempDir);
@@ -368,7 +368,7 @@ class SpreadCompatXlsxTest extends TestCase
         $data = $Native->readFile(__DIR__ . '/data/empty-col.xlsx');
 
         $arr = iterator_to_array($data);
-        $this->assertEquals([
+        self::assertEquals([
             [
                 'col1' => "v1",
                 'col2' => "v2",
@@ -394,7 +394,7 @@ class SpreadCompatXlsxTest extends TestCase
         $data = $Native->readFile(__DIR__ . '/data/empty-col-2.xlsx');
 
         $arr = iterator_to_array($data);
-        $this->assertEquals([
+        self::assertEquals([
             [
                 'col1' => "v1",
                 'col2' => "v2",
@@ -428,7 +428,7 @@ class SpreadCompatXlsxTest extends TestCase
         $data = $Native->readFile(__DIR__ . '/data/empty-col-2.xlsx');
 
         $arr = iterator_to_array($data);
-        $this->assertEquals([
+        self::assertEquals([
             [
                 'col1',
                 'col2',
@@ -488,29 +488,29 @@ class SpreadCompatXlsxTest extends TestCase
         $arr = iterator_to_array($data);
 
         $firstRow = $arr[0];
-        $this->assertEquals('2016-10-14', $firstRow['BirthDate']);
-        $this->assertEquals('2025-01-01 10:00:00', $firstRow['Created']);
-        $this->assertEquals('10:00:00', $firstRow['BestTime']);
+        self::assertEquals('2016-10-14', $firstRow['BirthDate']);
+        self::assertEquals('2025-01-01 10:00:00', $firstRow['Created']);
+        self::assertEquals('10:00:00', $firstRow['BestTime']);
 
         // Test that it works even for silly dates
-        $this->assertEquals('1545-01-15', $arr[1]['BirthDate']);
-        $this->assertEquals('2955-12-10', $arr[2]['BirthDate']);
-        $this->assertEquals('1242-09-16', $arr[3]['BirthDate']);
-        $this->assertEquals('1742-09-16', $arr[4]['BirthDate']);
-        $this->assertEquals('1900-09-16', $arr[5]['BirthDate']);
-        $this->assertEquals('1899-09-16', $arr[6]['BirthDate']);
-        $this->assertEquals('4111-09-16', $arr[7]['BirthDate']);
-        $this->assertTrue('' === $arr[8]['BirthDate']); // it has no t attribute so it is simply a string
+        self::assertEquals('1545-01-15', $arr[1]['BirthDate']);
+        self::assertEquals('2955-12-10', $arr[2]['BirthDate']);
+        self::assertEquals('1242-09-16', $arr[3]['BirthDate']);
+        self::assertEquals('1742-09-16', $arr[4]['BirthDate']);
+        self::assertEquals('1900-09-16', $arr[5]['BirthDate']);
+        self::assertEquals('1899-09-16', $arr[6]['BirthDate']);
+        self::assertEquals('4111-09-16', $arr[7]['BirthDate']);
+        self::assertTrue('' === $arr[8]['BirthDate']); // it has no t attribute so it is simply a string
 
         // Invalid dates are treated as strings
-        $this->assertEquals('00/00/0000', $arr[9]['BirthDate']);
+        self::assertEquals('00/00/0000', $arr[9]['BirthDate']);
 
         foreach (range(1, 31) as $i) {
             $r = $arr[9 + $i];
             if ($r['Surname'] === 'buggy') {
                 continue;
             }
-            $this->assertEquals('1899-09-16', $r['BirthDate'], "Failed format $i: " . json_encode($r));
+            self::assertEquals('1899-09-16', $r['BirthDate'], "Failed format $i: " . json_encode($r));
         }
     }
 
@@ -537,7 +537,7 @@ class SpreadCompatXlsxTest extends TestCase
         // die();
 
         // Even when starting with empty columns, it should return
-        $this->assertCount(2, $arr);
+        self::assertCount(2, $arr);
 
         $row1 = [
             "Title" => "My Title",
@@ -548,7 +548,7 @@ class SpreadCompatXlsxTest extends TestCase
             "Boolean" => "1",
             "Extra Title" => null,
         ];
-        $this->assertEquals($row1, $arr[0]);
+        self::assertEquals($row1, $arr[0]);
 
         $Native = new Native();
         $Native->assoc = true;
@@ -563,13 +563,13 @@ class SpreadCompatXlsxTest extends TestCase
         // t=n s=2 => <numFmt numFmtId="165" formatCode="yyyy\-mm\-dd"/>
         // t=n s=3 => <numFmt numFmtId="166" formatCode="@"/>
 
-        $this->assertTrue(Native::isDateTimeFormatCode('yyyy\-mm\-dd'));
+        self::assertTrue(Native::isDateTimeFormatCode('yyyy\-mm\-dd'));
 
         $arr = iterator_to_array($data);
         // $arr2 = iterator_to_array($data2);
 
         // Even when starting with empty columns, it should return
-        $this->assertCount(3, $arr);
+        self::assertCount(3, $arr);
 
         $row1 = [
             "Title" => "My title",
@@ -580,7 +580,7 @@ class SpreadCompatXlsxTest extends TestCase
             "Boolean" => "1",
             "Extra column" => "",
         ];
-        $this->assertEquals($row1, $arr[0]);
+        self::assertEquals($row1, $arr[0]);
 
         $row3 = [
             "Title" => "",
@@ -591,14 +591,14 @@ class SpreadCompatXlsxTest extends TestCase
             "Boolean" => "0",
             "Extra column" => "My title",
         ];
-        $this->assertEquals($row3, $arr[2]);
+        self::assertEquals($row3, $arr[2]);
     }
 
     public function testConvertTime()
     {
         $t = 45834.614583333;
         $t2 = '45834.614583333';
-        $this->assertEquals('2025-06-26 14:45:00', SpreadCompat::excelTimeToDate($t));
-        $this->assertEquals('2025-06-26 14:45:00', SpreadCompat::excelTimeToDate($t2));
+        self::assertEquals('2025-06-26 14:45:00', SpreadCompat::excelTimeToDate($t));
+        self::assertEquals('2025-06-26 14:45:00', SpreadCompat::excelTimeToDate($t2));
     }
 }

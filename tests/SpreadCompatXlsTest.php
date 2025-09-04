@@ -13,24 +13,24 @@ class SpreadCompatXlsTest extends TestCase
     public function testFacadeCanReadXls()
     {
         $adapter = SpreadCompat::getAdapterName('xls');
-        $this->assertEquals("PhpSpreadsheet", $adapter);
+        self::assertEquals("PhpSpreadsheet", $adapter);
 
         $data = iterator_to_array(SpreadCompat::read(__DIR__ . '/data/basic.xls'));
-        $this->assertCount(1, $data);
-        $this->assertCount(3, $data[0]);
+        self::assertCount(1, $data);
+        self::assertCount(3, $data[0]);
     }
 
     public function testSpreadsheetCanReadXls()
     {
         $PhpSpreadsheet = new PhpSpreadsheet();
         $data = iterator_to_array($PhpSpreadsheet->readFile(__DIR__ . '/data/basic.xls'));
-        $this->assertCount(1, $data);
-        $this->assertCount(3, $data[0]);
+        self::assertCount(1, $data);
+        self::assertCount(3, $data[0]);
 
         $PhpSpreadsheet = new PhpSpreadsheet();
         $data = iterator_to_array($PhpSpreadsheet->readFile(__DIR__ . '/data/header.xls', assoc: true));
-        $this->assertCount(1, $data);
-        $this->assertCount(4, $data[0]);
+        self::assertCount(1, $data);
+        self::assertCount(4, $data[0]);
     }
 
     public function testSpreadsheetCanWriteXls()
@@ -54,6 +54,6 @@ class SpreadCompatXlsTest extends TestCase
             'autofilter' => 'A1:C1',
             'freezePane' => 'A1',
         ]);
-        $this->assertNotEquals($string, $string2);
+        self::assertNotEquals($string, $string2);
     }
 }
