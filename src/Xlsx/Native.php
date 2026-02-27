@@ -494,11 +494,16 @@ XML;
         fwrite($tempStream, $header);
 
         $dataRow = [""];
+        $colCache = [];
         foreach ($data as $dataRow) {
             $c = "";
             $i = 0;
+            $rowNum = $r + 1;
             foreach ($dataRow as $k => $value) {
-                $cn = SpreadCompat::excelCell($r, $i);
+                if (!isset($colCache[$i])) {
+                    $colCache[$i] = SpreadCompat::getLetter($i + 1);
+                }
+                $cn = $colCache[$i] . $rowNum;
 
                 if (!is_scalar($value) || $value === '') {
                     $c .= '<c r="' . $cn . '"/>';

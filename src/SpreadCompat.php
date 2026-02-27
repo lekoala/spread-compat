@@ -388,21 +388,23 @@ class SpreadCompat
      */
     public static function getLetter($index): string
     {
-        foreach (self::excelColumnRange() as $letter) {
-            $index--;
-            if ($index <= 0) {
-                return $letter;
-            }
+        static $cache = [];
+        if (isset($cache[$index])) {
+            return $cache[$index];
         }
-        return 'A';
+
+        $n = $index - 1;
+        for ($r = ""; $n >= 0; $n = intval($n / 26) - 1) {
+            $r = chr($n % 26 + 0x41) . $r;
+        }
+
+        $cache[$index] = $r;
+        return $r;
     }
 
     public static function excelCell(int $row = 0, int $column = 0, bool $absolute = false): string
     {
-        $n = $column;
-        for ($r = ""; $n >= 0; $n = intval($n / 26) - 1) {
-            $r = chr($n % 26 + 0x41) . $r;
-        }
+        $r = self::getLetter($column + 1);
         if ($absolute) {
             return '$' . $r . '$' . ($row + 1);
         }
