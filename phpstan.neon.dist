@@ -11,6 +11,7 @@ parameters:
         - "#(.*)SpreadInterface but returns object.#"
         - "#but does not specify its types: TValue#"
         - "#method_exists(.*) OpenSpout#"
+        - "#return type with generic class Generator does not specify its types#"
 # https://backendtea.com/post/use-phpstan-bleeding-edge/
 includes:
     - vendor/phpstan/phpstan/conf/bleedingEdge.neon
