@@ -23,6 +23,7 @@ abstract class CsvAdapter implements SpreadInterface
      * @var string[]
      */
     public array $headers = [];
+    public bool $escapeFormulas = false;
 
     public function getInputEncoding(): ?string
     {
@@ -103,5 +104,32 @@ abstract class CsvAdapter implements SpreadInterface
         }
 
         return ',';
+    }
+
+    /**
+     * @param array<mixed> $row
+     * @return array<mixed>
+     */
+    protected function escapeRow(array $row): array
+    {
+        if (!$this->escapeFormulas) {
+            return $row;
+        }
+        foreach ($row as &$cell) {
+            if (is_string($cell) && $cell !== '') {
+                $firstChar = $cell[0];
+                if (
+                    $firstChar === '=' ||
+                    $firstChar === '+' ||
+                    $firstChar === '-' ||
+                    $firstChar === '@' ||
+                    $firstChar === "\t" ||
+                    $firstChar === "\r"
+                ) {
+                    $cell = "'" . $cell;
+                }
+            }
+        }
+        return $row;
     }
 }

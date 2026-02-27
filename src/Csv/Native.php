@@ -95,7 +95,11 @@ class Native extends CsvAdapter
         }
 
         $separator = $this->getSeparator();
+        if (!empty($this->headers)) {
+            fputcsv($stream, $this->escapeRow($this->headers), $separator, $this->enclosure, $this->escape, $this->eol);
+        }
         foreach ($data as $row) {
+            $row = $this->escapeRow($row);
             $result = fputcsv($stream, $row, $separator, $this->enclosure, $this->escape, $this->eol);
             if ($result === false) {
                 throw new RuntimeException("Failed to write line");

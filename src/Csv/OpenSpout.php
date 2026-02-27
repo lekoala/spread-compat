@@ -123,8 +123,11 @@ class OpenSpout extends CsvAdapter
         //TODO: encoding?
 
         $writer->openToFile($filename);
+        if (!empty($this->headers)) {
+            $writer->addRow(Row::fromValues($this->escapeRow($this->headers)));
+        }
         foreach ($data as $row) {
-            $writer->addRow(Row::fromValues($row));
+            $writer->addRow(Row::fromValues($this->escapeRow($row)));
         }
         $writer->close();
         return true;
@@ -144,8 +147,11 @@ class OpenSpout extends CsvAdapter
         //TODO: encoding?
 
         $writer->openToBrowser($filename);
+        if (!empty($this->headers)) {
+            $writer->addRow(Row::fromValues($this->escapeRow($this->headers)));
+        }
         foreach ($data as $row) {
-            $writer->addRow(Row::fromValues($row));
+            $writer->addRow(Row::fromValues($this->escapeRow($row)));
         }
         $writer->close();
     }

@@ -109,7 +109,14 @@ class PhpSpreadsheet extends CsvAdapter
         if (!is_array($source)) {
             $source = iterator_to_array($source);
         }
-        $spreadsheet->getActiveSheet()->fromArray($source);
+        $data = [];
+        if (!empty($this->headers)) {
+            $data[] = $this->escapeRow($this->headers);
+        }
+        foreach ($source as $row) {
+            $data[] = $this->escapeRow($row);
+        }
+        $spreadsheet->getActiveSheet()->fromArray($data);
         $writer = new WriterCsv($spreadsheet);
         if ($this->outputEncoding) {
             $writer->setOutputEncoding($this->getOutputEncoding() ?? mb_internal_encoding());

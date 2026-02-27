@@ -29,6 +29,7 @@ class Options implements ArrayAccess
     public ?string $inputEncoding = null;
     public ?string $outputEncoding = null;
     public bool $bom = true;
+    public bool $escapeFormulas = false;
 
     // Excel only
     public ?string $creator = null;

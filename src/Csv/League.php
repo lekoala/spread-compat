@@ -140,9 +140,12 @@ class League extends CsvAdapter
         }
 
         if (!empty($this->headers)) {
-            $csv->insertOne($this->headers);
+            $csv->insertOne($this->escapeRow($this->headers));
         }
 
+        if ($this->escapeFormulas) {
+            $csv->addFormatter(fn(array $row): array => $this->escapeRow($row));
+        }
         $csv->insertAll($data);
     }
 
