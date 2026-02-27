@@ -16,11 +16,6 @@ use LeKoala\SpreadCompat\Xlsx\XlsxAdapter;
  */
 class Simple extends XlsxAdapter
 {
-    /**
-     * @param string $filename
-     * @param mixed ...$opts
-     * @return Generator<mixed>
-     */
     public function readFile(
         string $filename,
         ...$opts

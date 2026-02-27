@@ -32,10 +32,6 @@ class PhpSpreadsheet extends CsvAdapter
         return $reader;
     }
 
-    /**
-     * @param Spreadsheet $spreadsheet
-     * @return Generator<mixed>
-     */
     protected function readSpreadsheet(Spreadsheet $spreadsheet): Generator
     {
         $worksheet = $spreadsheet->getActiveSheet();
@@ -62,11 +58,6 @@ class PhpSpreadsheet extends CsvAdapter
         }
     }
 
-    /**
-     * @param string $contents
-     * @param mixed ...$opts
-     * @return Generator<mixed>
-     */
     public function readString(
         string $contents,
         ...$opts
@@ -79,21 +70,11 @@ class PhpSpreadsheet extends CsvAdapter
     /**
      * @param resource $stream
      */
-    /**
-     * @param resource $stream
-     * @param mixed ...$opts
-     * @return Generator<mixed>
-     */
     public function readStream($stream, ...$opts): Generator
     {
         throw new Exception("PhpSpreadsheet doesn't support streams");
     }
 
-    /**
-     * @param string $filename
-     * @param mixed ...$opts
-     * @return Generator<mixed>
-     */
     public function readFile(
         string $filename,
         ...$opts

@@ -38,10 +38,6 @@ trait PhpSpreadsheetUtils
         return $reader;
     }
 
-    /**
-     * @param Spreadsheet $spreadsheet
-     * @return Generator<mixed>
-     */
     protected function readSpreadsheet(Spreadsheet $spreadsheet): Generator
     {
         $headers = null;
@@ -67,11 +63,6 @@ trait PhpSpreadsheetUtils
         }
     }
 
-    /**
-     * @param string $filename
-     * @param mixed ...$opts
-     * @return Generator<mixed>
-     */
     public function readFile(
         string $filename,
         ...$opts

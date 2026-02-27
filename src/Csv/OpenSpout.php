@@ -13,11 +13,6 @@ use OpenSpout\Writer\CSV\Writer;
 
 class OpenSpout extends CsvAdapter
 {
-    /**
-     * @param string $contents
-     * @param mixed ...$opts
-     * @return Generator<mixed>
-     */
     public function readString(
         string $contents,
         ...$opts
@@ -28,11 +23,6 @@ class OpenSpout extends CsvAdapter
         unlink($filename);
     }
 
-    /**
-     * @param string $filename
-     * @param mixed ...$opts
-     * @return Generator<mixed>
-     */
     public function readFile(
         string $filename,
         ...$opts
@@ -69,11 +59,6 @@ class OpenSpout extends CsvAdapter
 
     /**
      * @param resource $stream
-     */
-    /**
-     * @param resource $stream
-     * @param mixed ...$opts
-     * @return Generator<mixed>
      */
     public function readStream($stream, ...$opts): Generator
     {

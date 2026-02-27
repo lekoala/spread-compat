@@ -274,8 +274,6 @@ class SpreadCompat
     }
 
     /**
-     * @param string $lower
-     * @param string $upper
      * @return Generator<string>
      */
     public static function excelColumnRange(string $lower = 'A', string $upper = 'ZZ'): Generator
@@ -403,26 +401,23 @@ class SpreadCompat
      *
      * @param int $index Column index (1 = A)
      */
-    public static function getLetter(int $index): string
+    public static function getLetter($index): string
     {
-        /** @var array<int, string> $cache */
-        static $cache = [];
-        if (isset($cache[$index])) {
-            return $cache[$index];
+        foreach (self::excelColumnRange() as $letter) {
+            $index--;
+            if ($index <= 0) {
+                return $letter;
+            }
         }
-
-        $n = $index - 1;
-        for ($r = ""; $n >= 0; $n = intval($n / 26) - 1) {
-            $r = chr($n % 26 + 0x41) . $r;
-        }
-
-        $cache[$index] = $r;
-        return $r;
+        return 'A';
     }
 
     public static function excelCell(int $row = 0, int $column = 0, bool $absolute = false): string
     {
-        $r = self::getLetter($column + 1);
+        $n = $column;
+        for ($r = ""; $n >= 0; $n = intval($n / 26) - 1) {
+            $r = chr($n % 26 + 0x41) . $r;
+        }
         if ($absolute) {
             return '$' . $r . '$' . ($row + 1);
         }
@@ -442,11 +437,6 @@ class SpreadCompat
         return is_string($ext) ? $ext : null;
     }
 
-    /**
-     * @param string $filename
-     * @param mixed ...$opts
-     * @return Generator<mixed>
-     */
     public static function read(string $filename, ...$opts): Generator
     {
         $ext = self::getExtensionFromOpts($opts);
@@ -457,12 +447,6 @@ class SpreadCompat
         return $adapter->readFile($filename, ...$opts);
     }
 
-    /**
-     * @param string $contents
-     * @param string|null $ext
-     * @param mixed ...$opts
-     * @return Generator<mixed>
-     */
     public static function readString(string $contents, ?string $ext = null, ...$opts): Generator
     {
         $ext = self::getExtensionFromOpts($opts, $ext);

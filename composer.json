@@ -53,7 +53,6 @@
         "phpunit-only": "phpunit --group=only",
         "phpunit-dev": "phpunit --filter=testTempFileWorks",
         "phpcs": "phpcs",
-        "phpcbf": "phpcbf",
         "phpstan": "phpstan analyse src/ --memory-limit=-1",
         "serve": "php -S localhost:8001 -t ./",
         "bench": [
