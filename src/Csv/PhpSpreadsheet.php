@@ -32,6 +32,10 @@ class PhpSpreadsheet extends CsvAdapter
         return $reader;
     }
 
+    /**
+     * @param Spreadsheet $spreadsheet
+     * @return Generator<mixed>
+     */
     protected function readSpreadsheet(Spreadsheet $spreadsheet): Generator
     {
         $worksheet = $spreadsheet->getActiveSheet();
