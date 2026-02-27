@@ -8,11 +8,21 @@ use Generator;
 
 interface SpreadInterface
 {
+    /**
+     * @param string $contents
+     * @param mixed ...$opts
+     * @return Generator<mixed>
+     */
     public function readString(
         string $contents,
         ...$opts
     ): Generator;
 
+    /**
+     * @param string $filename
+     * @param mixed ...$opts
+     * @return Generator<mixed>
+     */
     public function readFile(
         string $filename,
         ...$opts

@@ -9,6 +9,11 @@ use LeKoala\SpreadCompat\SpreadCompat;
 
 trait ReadWriteString
 {
+    /**
+     * @param string $contents
+     * @param mixed ...$opts
+     * @return Generator<mixed>
+     */
     public function readString(
         string $contents,
         ...$opts

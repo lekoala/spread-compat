@@ -19,6 +19,11 @@ class Native extends CsvAdapter
 {
     public const BOM = "\xef\xbb\xbf";
 
+    /**
+     * @param string $contents
+     * @param mixed ...$opts
+     * @return Generator<mixed>
+     */
     public function readString(
         string $contents,
         ...$opts
@@ -31,6 +36,11 @@ class Native extends CsvAdapter
 
     /**
      * @param resource $stream
+     */
+    /**
+     * @param resource $stream
+     * @param mixed ...$opts
+     * @return Generator<mixed>
      */
     public function readStream($stream, ...$opts): Generator
     {
@@ -60,6 +70,11 @@ class Native extends CsvAdapter
         }
     }
 
+    /**
+     * @param string $filename
+     * @param mixed ...$opts
+     * @return Generator<mixed>
+     */
     public function readFile(
         string $filename,
         ...$opts

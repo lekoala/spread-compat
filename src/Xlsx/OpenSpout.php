@@ -15,6 +15,11 @@ use OpenSpout\Writer\XLSX\Properties;
 
 class OpenSpout extends XlsxAdapter
 {
+    /**
+     * @param string $filename
+     * @param mixed ...$opts
+     * @return Generator<mixed>
+     */
     public function readFile(
         string $filename,
         ...$opts

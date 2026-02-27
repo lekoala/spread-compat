@@ -22,6 +22,11 @@ class Native extends XlsxAdapter
     public bool $stream = false;
     public ?string $tempPath = null;
 
+    /**
+     * @param string $filename
+     * @param mixed ...$opts
+     * @return Generator<mixed>
+     */
     public function readFile(
         string $filename,
         ...$opts

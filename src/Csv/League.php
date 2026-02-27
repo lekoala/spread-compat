@@ -14,6 +14,11 @@ use SplTempFileObject;
 
 class League extends CsvAdapter
 {
+    /**
+     * @param string $contents
+     * @param mixed ...$opts
+     * @return Generator<mixed>
+     */
     public function readString(string $contents, ...$opts): Generator
     {
         $this->configure(...$opts);
@@ -25,6 +30,11 @@ class League extends CsvAdapter
     /**
      * @param resource $stream
      */
+    /**
+     * @param resource $stream
+     * @param mixed ...$opts
+     * @return Generator<mixed>
+     */
     public function readStream($stream, ...$opts): Generator
     {
         $this->configure(...$opts);
@@ -33,6 +43,11 @@ class League extends CsvAdapter
         return $this->read(Reader::createFromStream($stream));
     }
 
+    /**
+     * @param string $filename
+     * @param mixed ...$opts
+     * @return Generator<mixed>
+     */
     public function readFile(string $filename, ...$opts): Generator
     {
         $this->configure(...$opts);
@@ -87,6 +102,10 @@ class League extends CsvAdapter
         $csv->output($filename);
     }
 
+    /**
+     * @param Reader $csv
+     * @return Generator<mixed>
+     */
     protected function read(Reader $csv): Generator
     {
         $this->initialize($csv);
