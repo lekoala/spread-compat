@@ -27,9 +27,9 @@ class ZipUtils
     public static function getData(ZipArchive $zip, string $name): ?string
     {
         $idx = $zip->locateName($name);
-        if ($idx) {
+        if ($idx !== false) {
             $result = $zip->getFromIndex($idx);
-            if ($result) {
+            if ($result !== false) {
                 return $result;
             }
         }
