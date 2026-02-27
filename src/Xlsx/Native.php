@@ -494,11 +494,21 @@ XML;
         fwrite($tempStream, $header);
 
         $dataRow = [""];
+        $columnLetters = [];
         foreach ($data as $dataRow) {
             $c = "";
             $i = 0;
+            $rowNumber = $r + 1;
             foreach ($dataRow as $k => $value) {
-                $cn = SpreadCompat::excelCell($r, $i);
+                if (!isset($columnLetters[$i])) {
+                    $n = $i;
+                    $columnLetter = "";
+                    for (; $n >= 0; $n = intval($n / 26) - 1) {
+                        $columnLetter = chr($n % 26 + 0x41) . $columnLetter;
+                    }
+                    $columnLetters[$i] = $columnLetter;
+                }
+                $cn = $columnLetters[$i] . $rowNumber;
 
                 if (!is_scalar($value) || $value === '') {
                     $c .= '<c r="' . $cn . '"/>';
