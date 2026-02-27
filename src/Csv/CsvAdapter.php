@@ -75,13 +75,16 @@ abstract class CsvAdapter implements SpreadInterface
         $line = "";
         if (is_string($streamOrFile)) {
             if (is_file($streamOrFile)) {
-                $streamOrFile = fopen($streamOrFile, 'r');
+                $h = fopen($streamOrFile, 'r');
+                if ($h) {
+                    $line = fgets($h);
+                    fclose($h);
+                }
             } else {
                 $line = preg_split('/\r\n|\r|\n/', $streamOrFile, 1);
                 $line = $line[0] ?? "";
             }
-        }
-        if (is_resource($streamOrFile)) {
+        } elseif (is_resource($streamOrFile)) {
             $line = fgets($streamOrFile);
             rewind($streamOrFile);
         }
