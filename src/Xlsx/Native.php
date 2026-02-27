@@ -611,11 +611,13 @@ XML;
 
             // close() will try to rename the file, but we cannot rename to/from temp dir
             $mode = ZipArchive::CREATE | ZipArchive::OVERWRITE;
-            // Simply use root folder
-            $baseName = '_xlsx_native.tmp';
-            // Or use specified temp path (should not be the sys temp dir)
             if ($this->tempPath) {
-                $baseName = $this->tempPath . DIRECTORY_SEPARATOR . $baseName;
+                $baseName = tempnam($this->tempPath, 'xlsx_native');
+                if (!$baseName) {
+                    throw new Exception("Failed to create temp file in " . $this->tempPath);
+                }
+            } else {
+                $baseName = SpreadCompat::getTempFilename();
             }
 
             $zip = new ZipArchive();
@@ -663,11 +665,8 @@ XML;
             SpreadCompat::outputHeaders($mime, $filename);
 
             $tempFilename = SpreadCompat::getTempFilename();
-            if (is_file($tempFilename)) {
-                unlink($tempFilename); // ZipArchive needs no file
-            }
             $zip = new ZipArchive();
-            $zip->open($tempFilename, ZipArchive::CREATE);
+            $zip->open($tempFilename, ZipArchive::CREATE | ZipArchive::OVERWRITE);
             $this->write($zip, $data);
             $zip->close();
             readfile($tempFilename);
