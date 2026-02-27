@@ -114,9 +114,7 @@ class League extends CsvAdapter
             $csv->setHeaderOffset(0);
         }
 
-        foreach ($csv as $record) {
-            yield $record;
-        }
+        yield from $csv;
     }
 
     /**
