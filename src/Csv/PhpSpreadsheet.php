@@ -104,7 +104,7 @@ class PhpSpreadsheet extends CsvAdapter
     }
 
     /**
-     * @param iterable<mixed[]> $source
+     * @param iterable<array<mixed>> $source
      */
     protected function getWriter(iterable $source): WriterCsv
     {

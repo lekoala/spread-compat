@@ -92,7 +92,7 @@ class OpenSpout extends CsvAdapter
     }
 
     /**
-     * @param iterable<list<bool|\DateInterval|\DateTimeInterface|float|int|string|null>> $data
+     * @param iterable<list<bool|\DateInterval|\DateTimeInterface|float|int|string|\Stringable|null>> $data
      * @param mixed ...$opts
      * @return string
      */
@@ -110,7 +110,7 @@ class OpenSpout extends CsvAdapter
     }
 
     /**
-     * @param iterable<list<bool|\DateInterval|\DateTimeInterface|float|int|string|null>> $data
+     * @param iterable<list<bool|\DateInterval|\DateTimeInterface|float|int|string|\Stringable|null>> $data
      * @param string $filename
      * @param mixed ...$opts
      * @return bool
@@ -134,7 +134,7 @@ class OpenSpout extends CsvAdapter
     }
 
     /**
-     * @param iterable<list<bool|\DateInterval|\DateTimeInterface|float|int|string|null>> $data
+     * @param iterable<list<bool|\DateInterval|\DateTimeInterface|float|int|string|\Stringable|null>> $data
      * @param string $filename
      * @param mixed ...$opts
      * @return void
