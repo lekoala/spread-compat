@@ -117,4 +117,28 @@ class SpreadCompatCommonTest extends TestCase
         $csvData = SpreadCompat::readString($csv, null, $options);
         self::assertNotEmpty(iterator_to_array($csvData));
     }
+
+    public function testCanGetStreamContents()
+    {
+        $stream = fopen('php://temp', 'r+');
+        if (!$stream) {
+            throw new \RuntimeException("Failed to open stream");
+        }
+        $content = "Hello world";
+        fwrite($stream, $content);
+
+        $result = SpreadCompat::getStreamContents($stream);
+        self::assertEquals($content, $result);
+
+        // Test with empty stream
+        $emptyStream = fopen('php://temp', 'r+');
+        if (!$emptyStream) {
+            throw new \RuntimeException("Failed to open empty stream");
+        }
+        $result = SpreadCompat::getStreamContents($emptyStream);
+        self::assertEquals("", $result);
+
+        fclose($stream);
+        fclose($emptyStream);
+    }
 }
