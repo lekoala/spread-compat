@@ -137,7 +137,7 @@ class Native extends XlsxAdapter
                 $format = null;
 
                 // add as many null values as missing columns
-                $colLetter = preg_replace('/\d/', '', $r);
+                $colLetter = rtrim($r, '0123456789');
                 $cellIndex = array_search($colLetter, $columns);
                 while ($cellIndex > $col) {
                     $rowData[] = null;
