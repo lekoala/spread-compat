@@ -103,6 +103,9 @@ class PhpSpreadsheet extends CsvAdapter
         yield from $this->readSpreadsheet($spreadsheet);
     }
 
+    /**
+     * @param iterable<mixed[]> $source
+     */
     protected function getWriter(iterable $source): WriterCsv
     {
         $spreadsheet = new Spreadsheet();
