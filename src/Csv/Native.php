@@ -85,7 +85,7 @@ class Native extends CsvAdapter
 
     /**
      * @param resource $stream
-     * @param iterable<array<float|int|string|\Stringable|null>> $data
+     * @param iterable<array<int|string, bool|float|int|string|\Stringable|null>> $data
      * @return void
      */
     protected function write($stream, iterable $data): void

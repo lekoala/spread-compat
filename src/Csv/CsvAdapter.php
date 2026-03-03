@@ -107,8 +107,9 @@ abstract class CsvAdapter implements SpreadInterface
     }
 
     /**
-     * @param array<mixed> $row
-     * @return array<mixed>
+     * @template T of array<mixed>
+     * @param T $row
+     * @return T
      */
     protected function escapeRow(array $row): array
     {
