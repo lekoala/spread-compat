@@ -47,7 +47,7 @@ class Native extends XlsxAdapter
         $ssXml = null;
         $ssData = ZipUtils::getData($zip, 'xl/sharedStrings.xml');
         if ($ssData) {
-            $ssXml = new SimpleXMLElement($ssData);
+            $ssXml = new SimpleXMLElement($ssData, LIBXML_NONET);
         }
 
         // styles
@@ -56,7 +56,7 @@ class Native extends XlsxAdapter
         $cellFormats = [];
         $stylesData = ZipUtils::getData($zip, 'xl/styles.xml');
         if ($stylesData) {
-            $stylesXml = new SimpleXMLElement($stylesData);
+            $stylesXml = new SimpleXMLElement($stylesData, LIBXML_NONET);
 
             // Number formats. Built-in formats are optional and may not be included
             if (isset($stylesXml->numFmts)) {
@@ -113,7 +113,7 @@ class Native extends XlsxAdapter
         };
 
         // Process data
-        $wsXml = new SimpleXMLElement($wsData);
+        $wsXml = new SimpleXMLElement($wsData, LIBXML_NONET);
         $headers = null;
         $rowCount = 0;
         $startRow = $this->assoc ? 1 : 0;
