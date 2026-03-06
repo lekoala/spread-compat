@@ -12,7 +12,7 @@ Ideally, importing single sheets of csv, excel or ods should be just a matter of
 ## Supported packages
 
 Baresheet (Native): very fast csv, xlsx and ods import/export, but limited features. Can read/output streams. It is used as our default native adapter.
-[https://github.com/lekoala/php-baresheet](https://github.com/lekoala/php-baresheet)
+[https://github.com/lekoala/baresheet](https://github.com/lekoala/baresheet)
 
 OpenSpout: fast csv, excel (xlsx) and ods import/export
 [https://github.com/openspout/openspout](https://github.com/openspout/openspout)
