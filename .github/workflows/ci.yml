@@ -38,13 +38,15 @@ jobs:
         run: vendor/bin/phpstan analyse src/
 
   test:
-    name: PHPUnit PHP ${{ matrix.php }}
+    name: PHPUnit PHP ${{ matrix.php }} / PhpSpreadsheet ${{ matrix.phpss }} / OpenSpout ${{ matrix.openspout }}
     needs: lint
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         php: ["8.1", "8.2", "8.3", "8.4", "8.5"]
+        phpss: ["^1.26", "^5.0"]
+        openspout: ["^4.24", "^5.0"]
 
     steps:
       - uses: actions/checkout@v6
@@ -69,6 +71,12 @@ jobs:
 
       - name: Composer install
         run: composer install --no-progress --prefer-dist --optimize-autoloader
+
+      - name: Pin PhpSpreadsheet version
+        run: composer update phpoffice/phpspreadsheet:${{ matrix.phpss }} --no-interaction --no-progress --prefer-dist
+
+      - name: Pin OpenSpout version
+        run: composer update openspout/openspout:${{ matrix.openspout }} --no-interaction --no-progress --prefer-dist
 
       - name: PHPUnit
         run: vendor/bin/phpunit --configuration phpunit.xml.dist

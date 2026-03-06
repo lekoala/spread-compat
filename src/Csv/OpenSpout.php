@@ -39,13 +39,7 @@ class OpenSpout extends CsvAdapter
     ): Generator {
         $this->configure(...$opts);
         $this->configureSeparator($filename);
-        $options = new \OpenSpout\Reader\CSV\Options();
-
-        $options->FIELD_DELIMITER = $this->getSeparator();
-        $options->FIELD_ENCLOSURE = $this->enclosure;
-        if ($this->inputEncoding) {
-            $options->ENCODING = $this->getInputEncoding() ?? mb_internal_encoding();
-        }
+        $options = $this->createReaderOptions();
         $headers = null;
         //TODO: support escape
 
@@ -83,12 +77,114 @@ class OpenSpout extends CsvAdapter
 
     protected function getWriter(): Writer
     {
-        $options = new \OpenSpout\Writer\CSV\Options();
-        $options->FIELD_DELIMITER = $this->getSeparator();
-        $options->FIELD_ENCLOSURE = $this->enclosure;
-        $options->SHOULD_ADD_BOM = $this->bom;
+        $options = $this->createWriterOptions();
         $writer = new Writer($options);
         return $writer;
+    }
+
+    /**
+     * Create CSV reader options compatible with OpenSpout v4 and v5.
+     */
+    private function createReaderOptions(): \OpenSpout\Reader\CSV\Options
+    {
+        $class = new \ReflectionClass(\OpenSpout\Reader\CSV\Options::class);
+        $ctor = $class->getConstructor();
+
+        if ($ctor && $ctor->getNumberOfParameters() > 0) {
+            $args = [];
+            foreach ($ctor->getParameters() as $param) {
+                $name = strtolower(str_replace('_', '', $param->getName()));
+                if ($name === 'fielddelimiter') {
+                    $args[] = $this->getSeparator();
+                } elseif ($name === 'fieldenclosure') {
+                    $args[] = $this->enclosure;
+                } elseif ($name === 'encoding') {
+                    if ($this->inputEncoding) {
+                        $args[] = $this->getInputEncoding() ?? mb_internal_encoding();
+                    } elseif ($param->isDefaultValueAvailable()) {
+                        $args[] = $param->getDefaultValue();
+                    } else {
+                        $args[] = null;
+                    }
+                } else {
+                    if ($param->isDefaultValueAvailable()) {
+                        $args[] = $param->getDefaultValue();
+                    } else {
+                        $args[] = null;
+                    }
+                }
+            }
+
+            /** @var \OpenSpout\Reader\CSV\Options $options */
+            $options = $class->newInstanceArgs($args);
+        } else {
+            /** @var \OpenSpout\Reader\CSV\Options $options */
+            $options = $class->newInstance();
+            // This branch is only used with OpenSpout v4, where options are
+            // mutable public properties. In v5 they are readonly and this
+            // code path is not executed; PHPStan still sees the assignments.
+            /** @phpstan-ignore-next-line readonly property (v5) written for v4 compatibility */
+            $options->FIELD_DELIMITER = $this->getSeparator();
+            /** @phpstan-ignore-next-line readonly property (v5) written for v4 compatibility */
+            $options->FIELD_ENCLOSURE = $this->enclosure;
+            if ($this->inputEncoding) {
+                /** @phpstan-ignore-next-line readonly property (v5) written for v4 compatibility */
+                $options->ENCODING = $this->getInputEncoding() ?? mb_internal_encoding();
+            }
+        }
+
+        return $options;
+    }
+
+    /**
+     * Create CSV writer options compatible with OpenSpout v4 and v5, using
+     * mutable public properties when available, and constructor args for the
+     * newer immutable/readonly API.
+     */
+    private function createWriterOptions(): \OpenSpout\Writer\CSV\Options
+    {
+        $options = new \OpenSpout\Writer\CSV\Options();
+
+        // In v4, options are configured via public mutable properties.
+        $prop = new \ReflectionProperty($options, 'FIELD_DELIMITER');
+        if (!$prop->isReadOnly()) {
+            /** @phpstan-ignore-next-line readonly property (v5) written for v4 compatibility */
+            $options->FIELD_DELIMITER = $this->getSeparator();
+            /** @phpstan-ignore-next-line readonly property (v5) written for v4 compatibility */
+            $options->FIELD_ENCLOSURE = $this->enclosure;
+            /** @phpstan-ignore-next-line readonly property (v5) written for v4 compatibility */
+            $options->SHOULD_ADD_BOM = $this->bom;
+
+            return $options;
+        }
+
+        // In v5, properties are readonly and configured via the constructor.
+        $class = new \ReflectionClass(\OpenSpout\Writer\CSV\Options::class);
+        $ctor = $class->getConstructor();
+        $args = [];
+        if ($ctor) {
+            foreach ($ctor->getParameters() as $param) {
+                $name = strtolower(str_replace('_', '', $param->getName()));
+                if ($name === 'fielddelimiter') {
+                    $args[] = $this->getSeparator();
+                } elseif ($name === 'fieldenclosure') {
+                    $args[] = $this->enclosure;
+                } elseif ($name === 'shouldaddbom') {
+                    $args[] = $this->bom;
+                } else {
+                    if ($param->isDefaultValueAvailable()) {
+                        $args[] = $param->getDefaultValue();
+                    } else {
+                        $args[] = null;
+                    }
+                }
+            }
+        }
+
+        /** @var \OpenSpout\Writer\CSV\Options $options */
+        $options = $class->newInstanceArgs($args);
+
+        return $options;
     }
 
     /**

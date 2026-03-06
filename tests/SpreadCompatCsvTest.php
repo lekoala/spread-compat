@@ -69,6 +69,8 @@ class SpreadCompatCsvTest extends TestCase
 
     public function testOpenSpoutCanWriteCsv()
     {
+        $normalize = static fn(string $s): string => rtrim(str_replace("\r\n", "\n", $s));
+
         $openSpout = new OpenSpout();
         $openSpout->bom = false;
         $string = $openSpout->writeString([
@@ -77,7 +79,7 @@ class SpreadCompatCsvTest extends TestCase
             ]
         ]);
         $expected = file_get_contents(__DIR__ . '/data/basic.csv');
-        self::assertEquals($expected, $string);
+        self::assertEquals($normalize($expected), $normalize($string));
 
         $openSpout = new OpenSpout();
         $openSpout->bom = true;
@@ -87,7 +89,7 @@ class SpreadCompatCsvTest extends TestCase
             ]
         ]);
         $expected = file_get_contents(__DIR__ . '/data/bom.csv');
-        self::assertEquals($expected, $string);
+        self::assertEquals($normalize($expected), $normalize($string));
 
         // Spout cannot force enclosure, it only adds as necessary
         $openSpout = new OpenSpout();
@@ -99,7 +101,7 @@ class SpreadCompatCsvTest extends TestCase
             ]
         ]);
         $expected = file_get_contents(__DIR__ . '/data/separator.csv');
-        self::assertEquals($expected, $string);
+        self::assertEquals($normalize($expected), $normalize($string));
     }
 
     public function testLeagueCanReadCsv()

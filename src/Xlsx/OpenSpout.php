@@ -50,18 +50,28 @@ class OpenSpout extends XlsxAdapter
 
     protected function getWriter(): Writer
     {
-        $options = new \OpenSpout\Writer\XLSX\Options();
+        $optionsClass = new \ReflectionClass(\OpenSpout\Writer\XLSX\Options::class);
 
-        if (method_exists($options, 'getProperties') && class_exists(Properties::class)) {
-            $options->setProperties(new Properties(
-                creator: $this->creator
-            ));
+        // OpenSpout v5: readonly Options with a Properties value object.
+        if ($optionsClass->isReadOnly() && class_exists(Properties::class)) {
+            $creator = $this->creator ?? 'OpenSpout';
+            $options = new \OpenSpout\Writer\XLSX\Options(
+                properties: new Properties(
+                    creator: $creator,
+                    lastModifiedBy: $creator,
+                ),
+            );
+            return new Writer($options);
         }
+
+        // Older OpenSpout versions: use default options and, if supported,
+        // configure the creator directly on the writer instance.
+        $options = new \OpenSpout\Writer\XLSX\Options();
         $writer = new Writer($options);
-        // @link https://github.com/openspout/openspout/issues/286
         if ($this->creator && method_exists($writer, 'setCreator')) {
             $writer->setCreator($this->creator);
         }
+
         return $writer;
     }
 
@@ -77,8 +87,17 @@ class OpenSpout extends XlsxAdapter
             $sheetView = new SheetView();
             $row = (int)substr($this->freezePane, 1, 1);
             if ($row > 0) {
-                $sheetView->setFreezeRow($row);
-                $sheetView->setFreezeColumn(substr($this->freezePane, 0, 1));
+                $column = substr($this->freezePane, 0, 1);
+                if (method_exists($sheetView, 'setFreezeRow')) {
+                    // OpenSpout v4 style API
+                    $sheetView->setFreezeRow($row);
+                    $sheetView->setFreezeColumn($column);
+                } elseif (method_exists($sheetView, 'withFreezeRow')) {
+                    // OpenSpout v5 immutable API
+                    $sheetView = $sheetView
+                        ->withFreezeRow($row)
+                        ->withFreezeColumn($column);
+                }
             }
             $writer->getCurrentSheet()->setSheetView($sheetView);
         }
