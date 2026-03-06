@@ -9,76 +9,89 @@ use LeKoala\SpreadCompat\Xlsx\Native as XlsxNative;
 use LeKoala\SpreadCompat\Xlsx\PhpSpreadsheet as XlsxPhpSpreadsheet;
 use LeKoala\SpreadCompat\Xlsx\OpenSpout as XlsxOpenSpout;
 use LeKoala\SpreadCompat\Xlsx\Simple;
+use LeKoala\SpreadCompat\Ods\Native as OdsNative;
+use LeKoala\SpreadCompat\Ods\OpenSpout as OdsOpenSpout;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
-$largeCsv = SpreadCompat::getTempFilename();
-$largeXlsx = SpreadCompat::getTempFilename();
-
-$genData = [];
-foreach (range(1, 2500) as $i) {
-    $genData[] = [$i, "fname $i", "sname $i", "email-$i@domain.com"];
-}
-
-$csv = [
-    League::class,
-    OpenSpout::class,
-    Native::class,
-    PhpSpreadsheet::class
+$sizes = [
+    '2.5K' => 2500,
+    '50K'  => 50000,
 ];
 
-$xlsx = [
-    Simple::class,
-    XlsxOpenSpout::class,
-    XlsxPhpSpreadsheet::class,
-    XlsxNative::class,
+$formats = [
+    'csv' => [
+        League::class,
+        OpenSpout::class,
+        Native::class,
+        PhpSpreadsheet::class
+    ],
+    'xlsx' => [
+        Simple::class,
+        XlsxOpenSpout::class,
+        XlsxPhpSpreadsheet::class,
+        XlsxNative::class,
+    ],
+    'ods' => [
+        OdsOpenSpout::class,
+        OdsNative::class,
+    ]
 ];
 
-$reps = 5;
+$reps = 3;
 
-$times = [];
-foreach ($csv as $cl) {
-    foreach (range(1, $reps) as $i) {
-        /** @var \LeKoala\SpreadCompat\Csv\CsvAdapter $inst */
-        $inst = new ($cl);
+foreach ($sizes as $sizeName => $rowCount) {
+    echo "======================================" . PHP_EOL;
+    echo "Running $sizeName ($rowCount rows) write benchmark" . PHP_EOL;
+    echo "======================================" . PHP_EOL . PHP_EOL;
 
-        $st = microtime(true);
-        $inst->writeFile($genData, $largeCsv);
-        $et = microtime(true);
-        $diff = $et - $st;
-        $times['csv'][$cl][] = $diff;
+    $genData = [];
+    foreach (range(1, $rowCount) as $i) {
+        $genData[] = [$i, "fname $i", "sname $i", "email-$i@domain.com"];
     }
-}
 
-foreach ($xlsx as $cl) {
-    foreach (range(1, $reps) as $i) {
-        /** @var \LeKoala\SpreadCompat\Xlsx\XlsxAdapter $inst */
-        $inst = new ($cl);
+    $times = [];
 
-        try {
-            $st = microtime(true);
-            $inst->writeFile($genData, $largeXlsx);
-            $et = microtime(true);
-            $diff = $et - $st;
-            $times['xlsx'][$cl][] = $diff;
-        } catch (Exception $e) {
+    foreach ($formats as $format => $classes) {
+        $tempFile = SpreadCompat::getTempFilename() . '.' . $format;
+        foreach ($classes as $cl) {
+            // Skip PhpSpreadsheet for 50K
+            if ($sizeName === '50K' && str_contains($cl, 'PhpSpreadsheet')) {
+                continue;
+            }
+
+            foreach (range(1, $reps) as $i) {
+                $inst = new ($cl);
+                try {
+                    $st = microtime(true);
+                    $inst->writeFile($genData, $tempFile);
+                    $et = microtime(true);
+                    $diff = $et - $st;
+                    $times[$format][$cl][] = $diff;
+                } catch (\Exception $e) {
+                    // Ignore exceptions for unsupported configurations
+                }
+                if (file_exists($tempFile)) {
+                    unlink($tempFile);
+                }
+            }
         }
     }
-}
 
-foreach ($times as $format => $dataFormat) {
-    echo "Results for $format" . PHP_EOL . PHP_EOL;
+    foreach ($times as $format => $dataFormat) {
+        echo "Results for $format ($sizeName)" . PHP_EOL . PHP_EOL;
 
-    $results = [];
-    foreach ($dataFormat as $class => $times) {
-        $averageTime = round(array_sum($times) / count($times), 4);
-        $results[$class] = $averageTime;
+        $results = [];
+        foreach ($dataFormat as $class => $runTimes) {
+            $averageTime = round(array_sum($runTimes) / count($runTimes), 4);
+            $results[$class] = $averageTime;
+        }
+
+        uasort($results, fn($a, $b) => $a <=> $b);
+        foreach ($results as $class => $averageTime) {
+            echo "$class : " . $averageTime . PHP_EOL;
+        }
+
+        echo PHP_EOL;
     }
-
-    uasort($results, fn($a, $b) => $a <=> $b);
-    foreach ($results as $class => $averageTime) {
-        echo "$class : " . $averageTime . PHP_EOL;
-    }
-
-    echo PHP_EOL;
 }

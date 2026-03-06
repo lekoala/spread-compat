@@ -7,8 +7,16 @@ namespace LeKoala;
 class F
 {
     private const W = [
-        'cupiditate', 'praesentium', 'voluptas', 'pariatur',
-        'cum', 'lorem', 'ipsum', 'loquor', 'sic', 'amet'
+        'cupiditate',
+        'praesentium',
+        'voluptas',
+        'pariatur',
+        'cum',
+        'lorem',
+        'ipsum',
+        'loquor',
+        'sic',
+        'amet'
     ];
     private const F = ['Julia', 'Lucius', 'Julius', 'Anna'];
     private const S = ['Maximus', 'Corneli', 'Postumius', 'Servilius'];
@@ -119,7 +127,7 @@ class F
         return number_format(self::i($a, $b)) . ' ' . self::pick('€', '$');
     }
 
-    public static function em(string $p = null): string
+    public static function em(?string $p = null): string
     {
         if ($p === null) {
             $p = self::fn();

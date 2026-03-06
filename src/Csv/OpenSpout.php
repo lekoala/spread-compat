@@ -92,7 +92,7 @@ class OpenSpout extends CsvAdapter
     }
 
     /**
-     * @param iterable<list<bool|\DateInterval|\DateTimeInterface|float|int|string|\Stringable|null>> $data
+     * @param iterable<array<bool|\DateInterval|\DateTimeInterface|float|int|string|null>> $data
      * @param mixed ...$opts
      * @return string
      */
@@ -110,7 +110,7 @@ class OpenSpout extends CsvAdapter
     }
 
     /**
-     * @param iterable<list<bool|\DateInterval|\DateTimeInterface|float|int|string|\Stringable|null>> $data
+     * @param iterable<array<bool|\DateInterval|\DateTimeInterface|float|int|string|null>> $data
      * @param string $filename
      * @param mixed ...$opts
      * @return bool
@@ -124,17 +124,17 @@ class OpenSpout extends CsvAdapter
 
         $writer->openToFile($filename);
         if (!empty($this->headers)) {
-            $writer->addRow(Row::fromValues($this->escapeRow($this->headers)));
+            $writer->addRow(Row::fromValues(array_values($this->escapeRow($this->headers))));
         }
         foreach ($data as $row) {
-            $writer->addRow(Row::fromValues($this->escapeRow($row)));
+            $writer->addRow(Row::fromValues(array_values($this->escapeRow($row))));
         }
         $writer->close();
         return true;
     }
 
     /**
-     * @param iterable<list<bool|\DateInterval|\DateTimeInterface|float|int|string|\Stringable|null>> $data
+     * @param iterable<array<bool|\DateInterval|\DateTimeInterface|float|int|string|null>> $data
      * @param string $filename
      * @param mixed ...$opts
      * @return void
@@ -148,10 +148,10 @@ class OpenSpout extends CsvAdapter
 
         $writer->openToBrowser($filename);
         if (!empty($this->headers)) {
-            $writer->addRow(Row::fromValues($this->escapeRow($this->headers)));
+            $writer->addRow(Row::fromValues(array_values($this->escapeRow($this->headers))));
         }
         foreach ($data as $row) {
-            $writer->addRow(Row::fromValues($this->escapeRow($row)));
+            $writer->addRow(Row::fromValues(array_values($this->escapeRow($row))));
         }
         $writer->close();
     }

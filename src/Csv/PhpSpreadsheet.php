@@ -149,6 +149,7 @@ class PhpSpreadsheet extends CsvAdapter
     public function writeFile(iterable $data, string $filename, ...$opts): bool
     {
         $this->configure(...$opts);
+        /** @var iterable<array<mixed>> $data */
         $writer = $this->getWriter($data);
         $writer->save($filename);
         return true;
@@ -157,6 +158,7 @@ class PhpSpreadsheet extends CsvAdapter
     public function output(iterable $data, string $filename, ...$opts): void
     {
         $this->configure(...$opts);
+        /** @var iterable<array<mixed>> $data */
         $writer = $this->getWriter($data);
 
         SpreadCompat::outputHeaders('text/csv', $filename);

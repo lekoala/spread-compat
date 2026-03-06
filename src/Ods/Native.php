@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LeKoala\SpreadCompat\Csv;
+namespace LeKoala\SpreadCompat\Ods;
 
 /**
  * This class is an alias for Baresheet

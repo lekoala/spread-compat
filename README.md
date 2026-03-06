@@ -1,34 +1,38 @@
-> Easily manipulate PhpSpreadsheet, OpenSpout and League CSV
+# Spread Compat
+
+> Easily manipulate PhpSpreadsheet, OpenSpout, League CSV and Baresheet
 
 ## Why use this ?
 
 Importing/exporting csv data is a very common task in web development. While it's a very efficient format, it's also
-somewhat difficult for end users that are used to Excel. This is why you often end up accepting also xlsx format as a import/export target.
+somewhat difficult for end users that are used to Excel. This is why you often end up accepting also xlsx or ods format as a import/export target.
 
-Ideally, importing single sheets of csv or excel should be just a matter of changing an adapter. Thankfully, this package does just this :-)
+Ideally, importing single sheets of csv, excel or ods should be just a matter of changing an adapter. Thankfully, this package does just this :-)
 
 ## Supported packages
 
-Native php: very fast csv import/export, but limited features. Can read/output streams.
+Baresheet (Native): very fast csv, xlsx and ods import/export, but limited features. Can read/output streams. It is used as our default native adapter.
+[https://github.com/lekoala/php-baresheet](https://github.com/lekoala/php-baresheet)
 
-OpenSpout: fast csv and excel import/export
-https://github.com/openspout/openspout
+OpenSpout: fast csv, excel (xlsx) and ods import/export
+[https://github.com/openspout/openspout](https://github.com/openspout/openspout)
 
 League CSV: very fast csv import/export. Can read streams.
-https://github.com/thephpleague/csv
+[https://github.com/thephpleague/csv](https://github.com/thephpleague/csv)
 
-PhpSpreadsheet: slow excel (xls and xlsx) and csv import/export, but more features
-https://github.com/PHPOffice/PhpSpreadsheet
+PhpSpreadsheet: slow excel (xls, xlsx) and ods and csv import/export, but more features
+[https://github.com/PHPOffice/PhpSpreadsheet](https://github.com/PHPOffice/PhpSpreadsheet)
 
 SimpleXLSX: very fast excel import/export
-https://github.com/shuchkin/simplexlsx
-https://github.com/shuchkin/simplexlsxgen
+[https://github.com/shuchkin/simplexlsx](https://github.com/shuchkin/simplexlsx)
+[https://github.com/shuchkin/simplexlsxgen](https://github.com/shuchkin/simplexlsxgen)
 
 This package will prioritize installed library, by order of performance. You can also pick your preferred default adapter for each format like this:
 
 ```php
-SpreadCompat::$preferredCsvAdapter = SpreadCompat::NATIVE; // our native csv adapter is the fastest
-SpreadCompat::$preferredXlsxAdapter = SpreadCompat::NATIVE; // our native xlsx adapter is the fastest
+SpreadCompat::$preferredCsvAdapter = SpreadCompat::BARESHEET; // or SpreadCompat::NATIVE
+SpreadCompat::$preferredXlsxAdapter = SpreadCompat::BARESHEET;
+SpreadCompat::$preferredOdsAdapter = SpreadCompat::BARESHEET;
 ```
 
 ## Using the facade
@@ -43,7 +47,12 @@ Please note that read methods return a `Generator`. If you want an array, you ne
 $data = iterator_to_array(SpreadCompat::read('myfile.csv'));
 
 // or
-foreach(SpreadCompat::read('myfile.csv') as $row) {
+foreach(SpreadCompat::read('myfile.xlsx') as $row) {
+    // Do something
+}
+
+// or even
+foreach(SpreadCompat::read('myfile.ods') as $row) {
     // Do something
 }
 ```
@@ -87,7 +96,7 @@ $data = iterator_to_array(SpreadCompat::read('myfile.csv', $options));
 Instead of relying on the static variables, you can choose which adapter to use:
 
 ```php
-$csvData = SpreadCompat::readString($csv, adapter: SpreadCompat::NATIVE);
+$csvData = SpreadCompat::readString($csv, adapter: SpreadCompat::BARESHEET);
 // or
 $options = new Options();
 $options->adapter = SpreadCompat::NATIVE;
@@ -105,8 +114,6 @@ Since we can compare our solutions, there is a built in bench script. You can ch
 - [read benchmark](docs/bench-read.md)
 - [write benchmark](docs/bench-write.md)
 
-For simple imports/exports, it's very clear that using the `Native` adapter is the fastest.
-
-Otherwise, `league/csv` and `shuchkin/simplexlsx` are great choices.
+For simple imports/exports, it's very clear that using the `Native` (Baresheet) adapter is the fastest overall choice.
 
 Stop wasting cpu cycles right now and please use the most efficient adapter :-)

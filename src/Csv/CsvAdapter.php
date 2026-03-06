@@ -6,10 +6,12 @@ namespace LeKoala\SpreadCompat\Csv;
 
 use LeKoala\SpreadCompat\SpreadInterface;
 use LeKoala\SpreadCompat\Common\Configure;
+use LeKoala\SpreadCompat\Common\ReadWriteString;
 
 abstract class CsvAdapter implements SpreadInterface
 {
     use Configure;
+    use ReadWriteString;
 
     public string $separator = ",";
     public string $enclosure = "\"";
@@ -116,7 +118,8 @@ abstract class CsvAdapter implements SpreadInterface
         if (!$this->escapeFormulas) {
             return $row;
         }
-        foreach ($row as &$cell) {
+        $escapedRow = [];
+        foreach ($row as $k => $cell) {
             if (is_string($cell) && $cell !== '') {
                 $firstChar = $cell[0];
                 if (
@@ -130,7 +133,9 @@ abstract class CsvAdapter implements SpreadInterface
                     $cell = "'" . $cell;
                 }
             }
+            $escapedRow[$k] = $cell;
         }
-        return $row;
+        /** @var T */
+        return $escapedRow;
     }
 }

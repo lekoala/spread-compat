@@ -10,6 +10,19 @@ use LeKoala\SpreadCompat\SpreadCompat;
 trait ReadWriteString
 {
     /**
+     * @param resource $stream
+     * @param mixed ...$opts
+     * @return Generator<mixed>
+     */
+    public function readStream(
+        $stream,
+        ...$opts
+    ): Generator {
+        $contents = stream_get_contents($stream);
+        return $this->readString($contents, ...$opts);
+    }
+
+    /**
      * @param string $contents
      * @param mixed ...$opts
      * @return Generator<mixed>

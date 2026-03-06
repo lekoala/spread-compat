@@ -116,7 +116,7 @@ class OpenSpout extends XlsxAdapter
     }
 
     /**
-     * @param iterable<list<bool|\DateInterval|\DateTimeInterface|float|int|string|null>> $data
+     * @param iterable<array<bool|\DateInterval|\DateTimeInterface|float|int|string|null>> $data
      * @param string $filename
      * @param mixed ...$opts
      * @return bool
@@ -131,14 +131,14 @@ class OpenSpout extends XlsxAdapter
         $writer->openToFile($filename);
         $this->setSheetView($writer);
         foreach ($data as $row) {
-            $writer->addRow(Row::fromValues($row));
+            $writer->addRow(Row::fromValues(array_values($row)));
         }
         $writer->close();
         return true;
     }
 
     /**
-     * @param iterable<list<bool|\DateInterval|\DateTimeInterface|float|int|string|null>> $data
+     * @param iterable<array<bool|\DateInterval|\DateTimeInterface|float|int|string|null>> $data
      * @param string $filename
      * @param mixed ...$opts
      * @return void
@@ -153,7 +153,7 @@ class OpenSpout extends XlsxAdapter
         $writer->openToBrowser($filename);
         $this->setSheetView($writer);
         foreach ($data as $row) {
-            $writer->addRow(Row::fromValues($row));
+            $writer->addRow(Row::fromValues(array_values($row)));
         }
         $writer->close();
     }

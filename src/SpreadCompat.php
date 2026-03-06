@@ -21,13 +21,16 @@ class SpreadCompat
     public const LEAGUE = "League";
     public const SIMPLE = "Simple";
     public const NATIVE = "Native";
+    public const BARESHEET = "Baresheet";
 
     public const EXT_XLS = "xls";
     public const EXT_XLSX = "xlsx";
     public const EXT_CSV = "csv";
+    public const EXT_ODS = "ods";
 
     public static ?string $preferredCsvAdapter = null;
     public static ?string $preferredXslxAdapter = null;
+    public static ?string $preferredOdsAdapter = null;
 
     public static function getAdapterName(string $ext): string
     {
@@ -40,6 +43,7 @@ class SpreadCompat
             self::EXT_XLS => self::getXlsAdapter(),
             self::EXT_CSV => self::getCsvAdapter(),
             self::EXT_XLSX => self::getXlsxAdapter(),
+            self::EXT_ODS => self::getOdsAdapter(),
             default => null,
         };
 
@@ -66,6 +70,9 @@ class SpreadCompat
         if (self::$preferredCsvAdapter !== null) {
             return self::$preferredCsvAdapter;
         }
+        if (class_exists(\LeKoala\Baresheet\CsvReader::class)) {
+            return self::BARESHEET;
+        }
         if (class_exists(\League\Csv\Reader::class)) {
             return self::LEAGUE;
         }
@@ -81,8 +88,28 @@ class SpreadCompat
         if (self::$preferredXslxAdapter !== null) {
             return self::$preferredXslxAdapter;
         }
+        if (class_exists(\LeKoala\Baresheet\XlsxReader::class)) {
+            return self::BARESHEET;
+        }
         if (class_exists(\Shuchkin\SimpleXLSX::class)) {
             return self::SIMPLE;
+        }
+        if (class_exists(\OpenSpout\Common\Entity\Row::class)) {
+            return self::OPEN_SPOUT;
+        }
+        if (class_exists(\PhpOffice\PhpSpreadsheet\Worksheet\Row::class)) {
+            return self::PHP_SPREADSHEET;
+        }
+        return self::NATIVE;
+    }
+
+    private static function getOdsAdapter(): string
+    {
+        if (self::$preferredOdsAdapter !== null) {
+            return self::$preferredOdsAdapter;
+        }
+        if (class_exists(\LeKoala\Baresheet\OdsReader::class)) {
+            return self::BARESHEET;
         }
         if (class_exists(\OpenSpout\Common\Entity\Row::class)) {
             return self::OPEN_SPOUT;
@@ -96,7 +123,7 @@ class SpreadCompat
     public static function getAdapter(string $ext): SpreadInterface
     {
         $name = self::getAdapterName($ext);
-        $ext = ucfirst($ext);
+        $ext = ucfirst(strtolower($ext));
         $class = '\\LeKoala\\SpreadCompat\\' . $ext . '\\' . $name;
         if (!class_exists($class)) {
             throw new Exception("Invalid adapter $class");
@@ -106,7 +133,7 @@ class SpreadCompat
 
     public static function getAdapterByName(string $ext, string $name): SpreadInterface
     {
-        $ext = ucfirst($ext);
+        $ext = ucfirst(strtolower($ext));
         $class = '\\LeKoala\\SpreadCompat\\' . $ext . '\\' . $name;
         if (!class_exists($class)) {
             throw new Exception("Invalid adapter $class");

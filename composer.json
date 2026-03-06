@@ -18,7 +18,14 @@
         }
     ],
     "require": {
-        "php": "^8.1"
+        "php": "^8.1.2",
+        "ext-filter": "*",
+        "ext-libxml": "*",
+        "ext-mbstring": "*",
+        "ext-simplexml": "*",
+        "ext-xmlreader": "*",
+        "ext-zip": "*",
+        "lekoala/baresheet": "^0.2"
     },
     "require-dev": {
         "league/csv": "^9.10",
@@ -49,13 +56,9 @@
             "@phpstan"
         ],
         "phpunit": "phpunit",
-        "phpunit-migrate": "phpunit --migrate-configuration",
-        "phpunit-only": "phpunit --group=only",
-        "phpunit-dev": "phpunit --filter=testTempFileWorks",
         "phpcs": "phpcs",
         "phpcbf": "phpcbf",
         "phpstan": "phpstan analyse src/ --memory-limit=-1",
-        "serve": "php -S localhost:8001 -t ./",
         "bench": [
             "php ./bin/bench-read.php > ./docs/bench-read.md",
             "php ./bin/bench-write.php > ./docs/bench-write.md"

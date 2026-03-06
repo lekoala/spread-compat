@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace LeKoala\SpreadCompat\Xlsx;
+namespace LeKoala\SpreadCompat\Ods;
 
 use LeKoala\SpreadCompat\SpreadInterface;
 use LeKoala\SpreadCompat\Common\Configure;
 use LeKoala\SpreadCompat\Common\ReadWriteString;
 
-abstract class XlsxAdapter implements SpreadInterface
+abstract class OdsAdapter implements SpreadInterface
 {
     use Configure;
     use ReadWriteString;
@@ -20,11 +20,8 @@ abstract class XlsxAdapter implements SpreadInterface
     public ?string $keywords = null;
     public ?string $description = null;
     public ?string $category = null;
-    public ?string $language = null;
     public bool $stream = false;
     public ?string $tempPath = null;
-    public ?string $autofilter = null;
-    public ?string $freezePane = null;
     /**
      * @var string[]
      */
