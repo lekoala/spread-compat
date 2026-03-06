@@ -53,7 +53,9 @@ class OpenSpout extends XlsxAdapter
         $optionsClass = new \ReflectionClass(\OpenSpout\Writer\XLSX\Options::class);
 
         // OpenSpout v5: readonly Options with a Properties value object.
-        if ($optionsClass->isReadOnly() && class_exists(Properties::class)) {
+        // ReflectionClass::isReadOnly only exists as of PHP 8.2, so guard the call.
+        $isReadOnlyClass = method_exists($optionsClass, 'isReadOnly') && $optionsClass->isReadOnly();
+        if ($isReadOnlyClass && class_exists(Properties::class)) {
             $creator = $this->creator ?? 'OpenSpout';
             $options = new \OpenSpout\Writer\XLSX\Options(
                 properties: new Properties(

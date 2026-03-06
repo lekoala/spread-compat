@@ -47,6 +47,12 @@ jobs:
         php: ["8.1", "8.2", "8.3", "8.4", "8.5"]
         phpss: ["^1.26", "^5.0"]
         openspout: ["^4.24", "^5.0"]
+        exclude:
+          # OpenSpout v5 requires PHP >= 8.3
+          - php: "8.1"
+            openspout: "^5.0"
+          - php: "8.2"
+            openspout: "^5.0"
 
     steps:
       - uses: actions/checkout@v6
