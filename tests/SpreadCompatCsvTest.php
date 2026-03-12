@@ -180,6 +180,13 @@ class SpreadCompatCsvTest extends TestCase
         self::assertArrayHasKey('email', $data[0]);
     }
 
+    public function testLeagueWriteFileReturnsFalseOnInvalidPath()
+    {
+        $league = new League();
+        $result = $league->writeFile([['data']], '/invalid/path/file.csv');
+        self::assertFalse($result);
+    }
+
     public function testNativeCanReadCsv()
     {
         $native = new Native();
