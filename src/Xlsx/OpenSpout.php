@@ -148,8 +148,6 @@ class OpenSpout extends XlsxAdapter
         $this->configure(...$opts);
         $writer = $this->getWriter();
 
-        //TODO: encoding?
-
         $writer->openToFile($filename);
         $this->setSheetView($writer);
         foreach ($data as $row) {
@@ -169,8 +167,6 @@ class OpenSpout extends XlsxAdapter
     {
         $this->configure(...$opts);
         $writer = $this->getWriter();
-
-        //TODO: encoding?
 
         $writer->openToBrowser($filename);
         $this->setSheetView($writer);
