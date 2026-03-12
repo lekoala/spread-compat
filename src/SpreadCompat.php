@@ -179,11 +179,21 @@ class SpreadCompat
      */
     public static function getTempFilename(): string
     {
-        $result = tempnam(sys_get_temp_dir(), 'S_C'); // windows only use the 3 first letters
-        if ($result === false) {
-            throw new Exception("Unable to create temp file");
+        $tmpDir = sys_get_temp_dir();
+        $attempts = 0;
+        $maxAttempts = 10;
+        while ($attempts < $maxAttempts) {
+            $random = bin2hex(random_bytes(16));
+            $filename = $tmpDir . DIRECTORY_SEPARATOR . 'S_C' . $random . '.tmp';
+            $handle = @fopen($filename, 'x');
+            if ($handle !== false) {
+                fclose($handle);
+                chmod($filename, 0600);
+                return $filename;
+            }
+            $attempts++;
         }
-        return $result;
+        throw new Exception("Unable to create a unique temporary file after $maxAttempts attempts");
     }
 
     public static function stringToTempFile(string $data): string
