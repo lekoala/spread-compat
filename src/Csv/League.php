@@ -83,7 +83,7 @@ class League extends CsvAdapter
             $this->write($data, Writer::createFromPath($filename, 'w'));
 
             return true;
-        } catch (RuntimeException) {
+        } catch (\Throwable) {
             return false;
         }
     }
