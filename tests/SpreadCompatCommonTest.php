@@ -141,4 +141,20 @@ class SpreadCompatCommonTest extends TestCase
         fclose($stream);
         fclose($emptyStream);
     }
+
+    public function testEnsureExtension()
+    {
+        // Already has extension
+        self::assertEquals('test.csv', SpreadCompat::ensureExtension('test.csv', 'csv'));
+        // Missing extension
+        self::assertEquals('test.csv', SpreadCompat::ensureExtension('test', 'csv'));
+        // Different extension
+        self::assertEquals('test.xlsx.csv', SpreadCompat::ensureExtension('test.xlsx', 'csv'));
+        // Case sensitivity (currently fails, but should pass after fix)
+        self::assertEquals('test.CSV', SpreadCompat::ensureExtension('test.CSV', 'csv'));
+        // Path with extension
+        self::assertEquals('/path/to/test.csv', SpreadCompat::ensureExtension('/path/to/test.csv', 'csv'));
+        // Path without extension
+        self::assertEquals('/path/to/test.csv', SpreadCompat::ensureExtension('/path/to/test', 'csv'));
+    }
 }
