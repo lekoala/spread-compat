@@ -288,7 +288,7 @@ class SpreadCompat
     public static function ensureExtension(string $filename, string $ext): string
     {
         $fileExt = pathinfo($filename, PATHINFO_EXTENSION);
-        if ($fileExt != $ext) {
+        if (strtolower($fileExt) != strtolower($ext)) {
             $filename .= ".$ext";
         }
         return $filename;
