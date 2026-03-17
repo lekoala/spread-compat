@@ -120,9 +120,13 @@ class OpenSpout extends XlsxAdapter
         $from = $parts[0];
         $to = $parts[1];
 
+        /** @var int<0, 25> $fromColumnIndex */
         $fromColumnIndex = ord(substr($from, 0, 1)) - ord('A');
+        /** @var positive-int $fromRow */
         $fromRow = (int)substr($from, 1, 1);
+        /** @var int<0, 25> $toColumnIndex */
         $toColumnIndex = ord(substr($to, 0, 1)) - ord('A');
+        /** @var positive-int $toRow */
         $toRow = (int)substr($to, 1, 1);
 
         assert($fromRow > 0 && $toRow > 0);
