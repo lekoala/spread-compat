@@ -103,6 +103,22 @@ $options->adapter = SpreadCompat::NATIVE;
 $csvData = SpreadCompat::readString($csv, $options);
 ```
 
+## Security
+
+### CSV Formula Injection
+
+When exporting to CSV, cell values starting with `=`, `+`, `-`, `@`, `\t`, or `\r` can be interpreted as formulas by spreadsheet software like Excel. This is known as [CSV Formula Injection](https://owasp.org/www-community/attacks/CSV_Injection).
+
+By default, this library does NOT escape these characters to ensure that the data is not altered and remains compatible with other tools that may expect raw data.
+
+If you are generating CSV files for end users to open in Excel and want to protect them from potential formula injection, you should enable the `escapeFormulas` option:
+
+```php
+SpreadCompat::write('myfile.csv', $data, escapeFormulas: true);
+```
+
+This will prepend a single quote (`'`) to any cell value that could be interpreted as a formula.
+
 ## Worksheets
 
 This package supports only 1 worksheet, as it is meant to be able to replace csv by xlsx or vice versa
