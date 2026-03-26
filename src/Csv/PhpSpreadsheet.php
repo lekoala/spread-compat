@@ -137,12 +137,15 @@ class PhpSpreadsheet extends CsvAdapter
     {
         $this->configure(...$opts);
         $filename = SpreadCompat::getTempFilename();
-        $this->writeFile($data, $filename);
-        $contents = file_get_contents($filename);
-        if (!$contents) {
-            $contents = "";
+        try {
+            $this->writeFile($data, $filename);
+            $contents = file_get_contents($filename);
+            if (!$contents) {
+                $contents = "";
+            }
+        } finally {
+            unlink($filename);
         }
-        unlink($filename);
         return $contents;
     }
 
