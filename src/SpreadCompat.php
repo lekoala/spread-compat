@@ -265,7 +265,7 @@ class SpreadCompat
     {
         // Open for writing only; place the file pointer at the beginning of the file
         // and truncate the file to zero length. If the file does not exist, attempt to create it.
-        $stream = fopen($filename, 'w');
+        $stream = @fopen($filename, 'w');
         if (!$stream) {
             throw new RuntimeException("Failed to open stream");
         }
@@ -278,7 +278,7 @@ class SpreadCompat
     public static function getInputStream(string $filename)
     {
         // Open for reading only; place the file pointer at the beginning of the file.
-        $stream = fopen($filename, 'r');
+        $stream = @fopen($filename, 'r');
         if (!$stream) {
             throw new RuntimeException("Failed to open stream");
         }
