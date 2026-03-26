@@ -157,4 +157,48 @@ class SpreadCompatCommonTest extends TestCase
         // Path without extension
         self::assertEquals('/path/to/test.csv', SpreadCompat::ensureExtension('/path/to/test', 'csv'));
     }
+
+    public function testGetOutputStream()
+    {
+        // Test with php://temp
+        $stream = SpreadCompat::getOutputStream('php://temp');
+        self::assertIsResource($stream);
+        self::assertEquals('stream', get_resource_type($stream));
+        fclose($stream);
+
+        // Test with a temp file
+        $tempFile = SpreadCompat::getTempFilename();
+        $stream = SpreadCompat::getOutputStream($tempFile);
+        self::assertIsResource($stream);
+        self::assertEquals('stream', get_resource_type($stream));
+        fclose($stream);
+        if (file_exists($tempFile)) {
+            unlink($tempFile);
+        }
+    }
+
+    public function testGetOutputStreamFailure()
+    {
+        $this->expectException(\RuntimeException::class);
+        // Opening a directory for writing should fail
+        SpreadCompat::getOutputStream(__DIR__);
+    }
+
+    public function testGetInputStream()
+    {
+        $tempFile = SpreadCompat::getTempFilename();
+        file_put_contents($tempFile, 'test');
+        $stream = SpreadCompat::getInputStream($tempFile);
+        self::assertIsResource($stream);
+        self::assertEquals('stream', get_resource_type($stream));
+        fclose($stream);
+        unlink($tempFile);
+    }
+
+    public function testGetInputStreamFailure()
+    {
+        $this->expectException(\RuntimeException::class);
+        // Opening a non-existent file for reading should fail
+        SpreadCompat::getInputStream('/non/existent/file');
+    }
 }
