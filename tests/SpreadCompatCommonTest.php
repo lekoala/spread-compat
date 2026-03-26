@@ -157,4 +157,30 @@ class SpreadCompatCommonTest extends TestCase
         // Path without extension
         self::assertEquals('/path/to/test.csv', SpreadCompat::ensureExtension('/path/to/test', 'csv'));
     }
+
+    public function testGetOutputStream()
+    {
+        // Test with php://temp
+        $stream = SpreadCompat::getOutputStream('php://temp');
+        self::assertIsResource($stream);
+        self::assertEquals('stream', get_resource_type($stream));
+        fclose($stream);
+
+        // Test with a temp file
+        $tempFile = SpreadCompat::getTempFilename();
+        $stream = SpreadCompat::getOutputStream($tempFile);
+        self::assertIsResource($stream);
+        self::assertEquals('stream', get_resource_type($stream));
+        fclose($stream);
+        if (file_exists($tempFile)) {
+            unlink($tempFile);
+        }
+    }
+
+    public function testGetOutputStreamFailure()
+    {
+        $this->expectException(\RuntimeException::class);
+        // Opening a directory for writing should fail
+        SpreadCompat::getOutputStream(__DIR__);
+    }
 }
