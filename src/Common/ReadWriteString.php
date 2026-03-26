@@ -33,8 +33,11 @@ trait ReadWriteString
     ): Generator {
         $filename = SpreadCompat::getTempFilename();
         file_put_contents($filename, $contents);
-        yield from $this->readFile($filename, ...$opts);
-        unlink($filename);
+        try {
+            yield from $this->readFile($filename, ...$opts);
+        } finally {
+            unlink($filename);
+        }
     }
 
     public function writeString(
@@ -42,12 +45,15 @@ trait ReadWriteString
         ...$opts
     ): string {
         $filename = SpreadCompat::getTempFilename();
-        $this->writeFile($data, $filename, ...$opts);
-        $contents = file_get_contents($filename);
-        if (!$contents) {
-            $contents = "";
+        try {
+            $this->writeFile($data, $filename, ...$opts);
+            $contents = file_get_contents($filename);
+            if (!$contents) {
+                $contents = "";
+            }
+        } finally {
+            unlink($filename);
         }
-        unlink($filename);
         return $contents;
     }
 }

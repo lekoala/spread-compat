@@ -24,8 +24,11 @@ class OpenSpout extends CsvAdapter
     ): Generator {
         $filename = SpreadCompat::getTempFilename();
         file_put_contents($filename, $contents);
-        yield from $this->readFile($filename);
-        unlink($filename);
+        try {
+            yield from $this->readFile($filename, ...$opts);
+        } finally {
+            unlink($filename);
+        }
     }
 
     /**
@@ -196,12 +199,15 @@ class OpenSpout extends CsvAdapter
     {
         $this->configure(...$opts);
         $filename = SpreadCompat::getTempFilename();
-        $this->writeFile($data, $filename);
-        $contents = file_get_contents($filename);
-        if (!$contents) {
-            $contents = "";
+        try {
+            $this->writeFile($data, $filename);
+            $contents = file_get_contents($filename);
+            if (!$contents) {
+                $contents = "";
+            }
+        } finally {
+            unlink($filename);
         }
-        unlink($filename);
         return $contents;
     }
 
