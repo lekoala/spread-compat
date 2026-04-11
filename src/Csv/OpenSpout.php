@@ -222,14 +222,12 @@ class OpenSpout extends CsvAdapter
         $this->configure(...$opts);
         $writer = $this->getWriter();
 
-        //TODO: encoding?
-
         $writer->openToFile($filename);
         if (!empty($this->headers)) {
-            $writer->addRow(Row::fromValues(array_values($this->escapeRow($this->headers))));
+            $writer->addRow(Row::fromValues(array_values($this->encodeRow($this->escapeRow($this->headers)))));
         }
         foreach ($data as $row) {
-            $writer->addRow(Row::fromValues(array_values($this->escapeRow($row))));
+            $writer->addRow(Row::fromValues(array_values($this->encodeRow($this->escapeRow($row)))));
         }
         $writer->close();
         return true;
@@ -246,15 +244,44 @@ class OpenSpout extends CsvAdapter
         $this->configure(...$opts);
         $writer = $this->getWriter();
 
-        //TODO: encoding?
+        $outputEncoding = $this->getOutputEncoding();
+        if ($outputEncoding && $outputEncoding !== 'UTF-8') {
+            SpreadCompat::outputHeaders('text/csv; charset=' . $outputEncoding, $filename);
+            $writer->openToFile('php://output');
+        } else {
+            $writer->openToBrowser($filename);
+        }
 
-        $writer->openToBrowser($filename);
         if (!empty($this->headers)) {
-            $writer->addRow(Row::fromValues(array_values($this->escapeRow($this->headers))));
+            $writer->addRow(Row::fromValues(array_values($this->encodeRow($this->escapeRow($this->headers)))));
         }
         foreach ($data as $row) {
-            $writer->addRow(Row::fromValues(array_values($this->escapeRow($row))));
+            $writer->addRow(Row::fromValues(array_values($this->encodeRow($this->escapeRow($row)))));
         }
         $writer->close();
+    }
+
+    /**
+     * @template T of array<mixed>
+     * @param T $row
+     * @return T
+     */
+    protected function encodeRow(array $row): array
+    {
+        $outputEncoding = $this->getOutputEncoding();
+        if (!$outputEncoding) {
+            return $row;
+        }
+        $inputEncoding = mb_internal_encoding();
+        if ($inputEncoding === $outputEncoding) {
+            return $row;
+        }
+        foreach ($row as &$cell) {
+            if (is_string($cell)) {
+                $cell = mb_convert_encoding($cell, $outputEncoding, $inputEncoding);
+            }
+        }
+        /** @var T $row */
+        return $row;
     }
 }
