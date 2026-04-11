@@ -201,4 +201,17 @@ class SpreadCompatCommonTest extends TestCase
         // Opening a non-existent file for reading should fail
         SpreadCompat::getInputStream('/non/existent/file');
     }
+
+    public function testIsTempFile()
+    {
+        self::assertTrue(SpreadCompat::isTempFile('/tmp/S_Cabcdef.tmp'));
+        self::assertTrue(SpreadCompat::isTempFile('S_Cabcdef.tmp'));
+        self::assertFalse(SpreadCompat::isTempFile('/tmp/not_a_temp_file.tmp'));
+        self::assertFalse(SpreadCompat::isTempFile('not_a_temp_file.tmp'));
+        self::assertFalse(SpreadCompat::isTempFile('/S_C_dir/file.txt'));
+
+        $temp = SpreadCompat::getTempFilename();
+        self::assertTrue(SpreadCompat::isTempFile($temp));
+        unlink($temp);
+    }
 }
