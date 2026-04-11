@@ -340,4 +340,13 @@ CSV;
         $data = iterator_to_array($generator);
         self::assertCount(1, $data, "Should be one line");
     }
+
+    public function testOpenSpoutCannotReadStream()
+    {
+        $openSpout = new OpenSpout();
+        $stream = fopen('php://memory', 'r');
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage("OpenSpout doesn't support streams");
+        iterator_to_array($openSpout->readStream($stream));
+    }
 }
