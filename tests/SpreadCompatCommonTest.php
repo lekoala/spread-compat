@@ -214,4 +214,24 @@ class SpreadCompatCommonTest extends TestCase
         self::assertTrue(SpreadCompat::isTempFile($temp));
         unlink($temp);
     }
+
+    public function testGetLetter()
+    {
+        self::assertEquals('A', SpreadCompat::getLetter(1));
+        self::assertEquals('Z', SpreadCompat::getLetter(26));
+        self::assertEquals('AA', SpreadCompat::getLetter(27));
+        self::assertEquals('ZZ', SpreadCompat::getLetter(702));
+        self::assertEquals('AAA', SpreadCompat::getLetter(703));
+        self::assertEquals('XFD', SpreadCompat::getLetter(16384));
+    }
+
+    public function testExcelCell()
+    {
+        self::assertEquals('A1', SpreadCompat::excelCell(0, 0));
+        self::assertEquals('$A$1', SpreadCompat::excelCell(0, 0, true));
+        self::assertEquals('Z10', SpreadCompat::excelCell(9, 25));
+        self::assertEquals('$Z$10', SpreadCompat::excelCell(9, 25, true));
+        self::assertEquals('AA100', SpreadCompat::excelCell(99, 26));
+        self::assertEquals('XFD16384', SpreadCompat::excelCell(16383, 16383));
+    }
 }
