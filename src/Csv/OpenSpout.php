@@ -222,12 +222,30 @@ class OpenSpout extends CsvAdapter
         $this->configure(...$opts);
         $writer = $this->getWriter();
 
+        $outputEncoding = $this->getOutputEncoding();
+        $inputEncoding = mb_internal_encoding();
+        $doEncode = $outputEncoding && $outputEncoding !== $inputEncoding;
+        $doEscape = $this->escapeFormulas;
+
         $writer->openToFile($filename);
         if (!empty($this->headers)) {
-            $writer->addRow(Row::fromValues(array_values($this->encodeRow($this->escapeRow($this->headers)))));
+            $headers = $this->headers;
+            if ($doEscape) {
+                $headers = $this->escapeRow($headers);
+            }
+            if ($doEncode) {
+                $headers = $this->encodeRow($headers, $outputEncoding, $inputEncoding);
+            }
+            $writer->addRow(Row::fromValues(array_values($headers)));
         }
         foreach ($data as $row) {
-            $writer->addRow(Row::fromValues(array_values($this->encodeRow($this->escapeRow($row)))));
+            if ($doEscape) {
+                $row = $this->escapeRow($row);
+            }
+            if ($doEncode) {
+                $row = $this->encodeRow($row, $outputEncoding, $inputEncoding);
+            }
+            $writer->addRow(Row::fromValues(array_values($row)));
         }
         $writer->close();
         return true;
@@ -245,6 +263,10 @@ class OpenSpout extends CsvAdapter
         $writer = $this->getWriter();
 
         $outputEncoding = $this->getOutputEncoding();
+        $inputEncoding = mb_internal_encoding();
+        $doEncode = $outputEncoding && $outputEncoding !== $inputEncoding;
+        $doEscape = $this->escapeFormulas;
+
         if ($outputEncoding && $outputEncoding !== 'UTF-8') {
             SpreadCompat::outputHeaders('text/csv; charset=' . $outputEncoding, $filename);
             $writer->openToFile('php://output');
@@ -253,10 +275,23 @@ class OpenSpout extends CsvAdapter
         }
 
         if (!empty($this->headers)) {
-            $writer->addRow(Row::fromValues(array_values($this->encodeRow($this->escapeRow($this->headers)))));
+            $headers = $this->headers;
+            if ($doEscape) {
+                $headers = $this->escapeRow($headers);
+            }
+            if ($doEncode) {
+                $headers = $this->encodeRow($headers, $outputEncoding, $inputEncoding);
+            }
+            $writer->addRow(Row::fromValues(array_values($headers)));
         }
         foreach ($data as $row) {
-            $writer->addRow(Row::fromValues(array_values($this->encodeRow($this->escapeRow($row)))));
+            if ($doEscape) {
+                $row = $this->escapeRow($row);
+            }
+            if ($doEncode) {
+                $row = $this->encodeRow($row, $outputEncoding, $inputEncoding);
+            }
+            $writer->addRow(Row::fromValues(array_values($row)));
         }
         $writer->close();
     }
@@ -264,15 +299,21 @@ class OpenSpout extends CsvAdapter
     /**
      * @template T of array<mixed>
      * @param T $row
+     * @param string|null $outputEncoding
+     * @param string|null $inputEncoding
      * @return T
      */
-    protected function encodeRow(array $row): array
+    protected function encodeRow(array $row, ?string $outputEncoding = null, ?string $inputEncoding = null): array
     {
-        $outputEncoding = $this->getOutputEncoding();
+        if ($outputEncoding === null) {
+            $outputEncoding = $this->getOutputEncoding();
+        }
         if (!$outputEncoding) {
             return $row;
         }
-        $inputEncoding = mb_internal_encoding();
+        if ($inputEncoding === null) {
+            $inputEncoding = mb_internal_encoding();
+        }
         if ($inputEncoding === $outputEncoding) {
             return $row;
         }
