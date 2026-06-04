@@ -53,6 +53,9 @@ jobs:
             openspout: "^5.0"
           - php: "8.2"
             openspout: "^5.0"
+          # PhpSpreadsheet 1.x requires PHP < 8.5
+          - php: "8.5"
+            phpss: "^1.26"
 
     steps:
       - uses: actions/checkout@v6
