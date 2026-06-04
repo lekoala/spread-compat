@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace LeKoala\SpreadCompat\Xlsx;
 
 use Generator;
+use LeKoala\SpreadCompat\SpreadCompat;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Writer\AutoFilter;
 use OpenSpout\Reader\XLSX\Reader;
 use OpenSpout\Writer\XLSX\Writer;
 use OpenSpout\Writer\XLSX\Entity\SheetView;
 use OpenSpout\Writer\XLSX\Properties;
+use RuntimeException;
 
 class OpenSpout extends XlsxAdapter
 {
@@ -78,6 +80,35 @@ class OpenSpout extends XlsxAdapter
     }
 
     /**
+     * Convert an Excel column letter (e.g., "A", "AA", "XFD") to a 0-based index.
+     */
+    private function columnLetterToIndex(string $letters): int
+    {
+        $index = 0;
+        foreach (str_split(strtoupper($letters)) as $char) {
+            $index = $index * 26 + (ord($char) - ord('A') + 1);
+        }
+        return $index - 1;
+    }
+
+    /**
+     * Parse an Excel cell reference (e.g., "A1", "AA10") into [columnIndex, row].
+     * @return array{int<0, max>, int<1, max>}|null
+     */
+    private function parseCellReference(string $cell): ?array
+    {
+        if (!preg_match('/^([A-Z]+)(\d+)$/i', $cell, $matches)) {
+            return null;
+        }
+        $columnIndex = max(0, $this->columnLetterToIndex($matches[1]));
+        $row = (int) $matches[2];
+        if ($row < 1) {
+            return null;
+        }
+        return [$columnIndex, $row];
+    }
+
+    /**
      * Call this after opening
      *
      * @param Writer $writer
@@ -86,10 +117,11 @@ class OpenSpout extends XlsxAdapter
     protected function setSheetView(Writer $writer)
     {
         if ($this->freezePane) {
-            $sheetView = new SheetView();
-            $row = (int)substr($this->freezePane, 1, 1);
-            if ($row > 0) {
-                $column = substr($this->freezePane, 0, 1);
+            $ref = $this->parseCellReference($this->freezePane);
+            if ($ref) {
+                [$columnIndex, $row] = $ref;
+                $column = SpreadCompat::getLetter($columnIndex + 1);
+                $sheetView = new SheetView();
                 if (method_exists($sheetView, 'setFreezeRow')) {
                     // OpenSpout v4 style API
                     $sheetView->setFreezeRow($row);
@@ -100,8 +132,8 @@ class OpenSpout extends XlsxAdapter
                         ->withFreezeRow($row)
                         ->withFreezeColumn($column);
                 }
+                $writer->getCurrentSheet()->setSheetView($sheetView);
             }
-            $writer->getCurrentSheet()->setSheetView($sheetView);
         }
         if ($this->autofilter) {
             $c = $this->autofilterCoords();
@@ -111,29 +143,26 @@ class OpenSpout extends XlsxAdapter
     }
 
     /**
-     * @return array{int<0,25>,positive-int,int<0,25>,positive-int}
+     * @return array{int<0, max>, int<1, max>, int<0, max>, int<1, max>}
      */
     public function autofilterCoords(): array
     {
         $parts = explode(":", $this->autofilter ?? "");
-        $from = $parts[0];
-        $to = $parts[1];
+        $fromRef = $parts[0];
+        $toRef = $parts[1] ?? '';
 
-        $fromColumnIndex = ord(substr($from, 0, 1)) - ord('A');
-        $fromRow = (int)substr($from, 1, 1);
-        $toColumnIndex = ord(substr($to, 0, 1)) - ord('A');
-        $toRow = (int)substr($to, 1, 1);
+        $from = $this->parseCellReference($fromRef);
+        $to = $this->parseCellReference($toRef);
 
-        /** @var int<0, 25> $fromColumnIndex */
-        /** @var positive-int $fromRow */
-        /** @var int<0, 25> $toColumnIndex */
-        /** @var positive-int $toRow */
+        if (!$from || !$to) {
+            throw new RuntimeException("Invalid autofilter range: {$this->autofilter}");
+        }
 
         return [
-            $fromColumnIndex,
-            $fromRow,
-            $toColumnIndex,
-            $toRow,
+            $from[0],
+            $from[1],
+            $to[0],
+            $to[1],
         ];
     }
 

@@ -73,6 +73,25 @@ class SpreadCompatXlsxTest extends TestCase
         $coordsOpenSpout->autofilter = 'A1:C1';
         self::assertEquals([0, 1, 2, 1], $coordsOpenSpout->autofilterCoords());
 
+        $coordsOpenSpout = new OpenSpout();
+        $coordsOpenSpout->autofilter = 'AA10:ZZ100';
+        self::assertEquals([26, 10, 701, 100], $coordsOpenSpout->autofilterCoords());
+
+        $coordsOpenSpout = new OpenSpout();
+        $coordsOpenSpout->autofilter = 'B2:D10';
+        self::assertEquals([1, 2, 3, 10], $coordsOpenSpout->autofilterCoords());
+
+        $coordsOpenSpout = new OpenSpout();
+        $coordsOpenSpout->freezePane = 'A10';
+        $string = $coordsOpenSpout->writeString([
+            [
+                "john",
+                "doe",
+                "john.doe@example.com"
+            ]
+        ]);
+        self::assertStringContainsString('[Content_Types].xml', $string);
+
         $openSpout = new OpenSpout();
         $openSpout->creator = "test";
         $string = $openSpout->writeString([
