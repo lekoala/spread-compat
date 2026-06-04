@@ -319,9 +319,7 @@ class SpreadCompat
     public static function excelColumnRange(string $lower = 'A', string $upper = 'ZZ'): Generator
     {
         ++$upper;
-        //@phpstan-ignore-next-line
         for ($i = $lower; $i !== $upper; ++$i) {
-            //@phpstan-ignore-next-line
             yield $i;
         }
     }
