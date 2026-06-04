@@ -24,7 +24,7 @@
         "ext-simplexml": "*",
         "ext-xmlreader": "*",
         "ext-zip": "*",
-        "lekoala/baresheet": "^0.2"
+        "lekoala/baresheet": "^0.2 || ^0.3 || ^0.4"
     },
     "require-dev": {
         "league/csv": "^9.10",
