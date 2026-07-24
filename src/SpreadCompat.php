@@ -216,6 +216,10 @@ class SpreadCompat
     /**
      * Try to determine based on contents
      * Expect csv to be all printable chars
+     *
+     * Binary (zip-based) spreadsheet formats cannot be told apart this way: xlsx and ods
+     * are both zip archives, so this always resolves a zip signature to xlsx. Pass an
+     * explicit extension to readString() if you may be reading an ods file.
      */
     public static function getExtensionForContent(string $contents): string
     {
@@ -499,6 +503,11 @@ class SpreadCompat
     }
 
     /**
+     * Binary spreadsheet strings require an explicit extension: without one, the extension
+     * is guessed from the content, and both xlsx and ods are zip archives, so an ods string
+     * would be auto-detected as xlsx. Pass $ext (or the `extension` option) whenever the
+     * content might be ods.
+     *
      * @param string $contents
      * @param string|null $ext
      * @param mixed ...$opts

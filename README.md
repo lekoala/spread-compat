@@ -103,6 +103,9 @@ $options->adapter = SpreadCompat::NATIVE;
 $csvData = SpreadCompat::readString($csv, $options);
 ```
 
+> [!NOTE]
+> `readString()` without an explicit extension guesses csv vs xlsx from the content. Xlsx and ods are both zip archives, so an ods string would be auto-detected as xlsx. Always pass the `extension` option (or `$ext`) when the content might be ods.
+
 ## Security
 
 ### CSV Formula Injection
