@@ -242,13 +242,19 @@ class SpreadCompatXlsxTest extends TestCase
     }
 
     /**
-     * PhpSpreadsheet 5.9 stores integers longer than 15 digits as strings via the
-     * default value binder, to avoid float precision loss on large identifiers
-     * (phone numbers, INAMI numbers, external ids, etc).
+     * Since PhpSpreadsheet 5.0, integers longer than 15 digits are stored as strings
+     * by the default value binder, to avoid float precision loss on large identifiers
+     * (phone numbers, INAMI numbers, external ids, etc). PhpSpreadsheet 1.x has no
+     * such safeguard, so this only applies to PhpSpreadsheet 5.x.
      */
     public function testSpreadsheetPreservesLargeIntegersAsStrings()
     {
-        $bigNumber = "12345678901234567"; // 17 digits
+        $installedVersion = \Composer\InstalledVersions::getVersion('phpoffice/phpspreadsheet');
+        if ($installedVersion === null || version_compare($installedVersion, '5.0.0', '<')) {
+            self::markTestSkipped('Requires PhpSpreadsheet >= 5.0');
+        }
+
+        $bigNumber = 12345678901234567; // 17 digits, as an actual int
 
         $writer = new PhpSpreadsheet();
         $string = $writer->writeString([
@@ -261,10 +267,10 @@ class SpreadCompatXlsxTest extends TestCase
         $arr = iterator_to_array($reader->readFile($tmpFile, assoc: true));
         unlink($tmpFile);
 
-        self::assertEquals(
-            $bigNumber,
+        self::assertSame(
+            '12345678901234567',
             $arr[0]['id'],
-            "A 17-digit identifier must round-trip exactly, without float precision loss or scientific notation"
+            "A 17-digit identifier must round-trip exactly as a string, without float precision loss or scientific notation"
         );
     }
 
@@ -283,6 +289,35 @@ class SpreadCompatXlsxTest extends TestCase
         $data = iterator_to_array($Simple->readFile(__DIR__ . '/data/header.xlsx', assoc: true));
         self::assertCount(1, $data);
         self::assertCount(4, $data[0]);
+    }
+
+    public function testSimpleDontSkipEmptyCols()
+    {
+        $Simple = new Simple();
+        $Simple->assoc = true;
+        $data = $Simple->readFile(__DIR__ . '/data/empty-col.xlsx');
+
+        $arr = iterator_to_array($data);
+        self::assertEquals([
+            [
+                'col1' => "v1",
+                'col2' => "v2",
+                'col3' => "",
+                'col4' => "v4",
+            ],
+            [
+                'col1' => "v1",
+                'col2' => "",
+                'col3' => "",
+                'col4' => "v4",
+            ],
+            [
+                'col1' => "",
+                'col2' => "v2",
+                'col3' => "v3",
+                'col4' => "",
+            ]
+        ], $arr, "A row with an empty first cell should not be dropped");
     }
 
     public function testSimpleCanWriteXlsx()

@@ -41,7 +41,11 @@ class Simple extends XlsxAdapter
         /** @var iterable<array<string>> $rows */
         $rows = $xlsx->readRows();
         foreach ($rows as $r) {
-            if (empty($r) || $r[0] === "") {
+            $empty = !array_filter(
+                $r,
+                static fn (string $value) => $value !== ''
+            );
+            if ($empty) {
                 continue;
             }
             if ($this->assoc) {
