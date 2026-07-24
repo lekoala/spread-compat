@@ -29,6 +29,10 @@ class SpreadCompat
     public const EXT_ODS = "ods";
 
     public static ?string $preferredCsvAdapter = null;
+    public static ?string $preferredXlsxAdapter = null;
+    /**
+     * @deprecated Typo, use $preferredXlsxAdapter instead. Will be removed in a future version.
+     */
     public static ?string $preferredXslxAdapter = null;
     public static ?string $preferredOdsAdapter = null;
 
@@ -85,8 +89,9 @@ class SpreadCompat
 
     private static function getXlsxAdapter(): string
     {
-        if (self::$preferredXslxAdapter !== null) {
-            return self::$preferredXslxAdapter;
+        $preferred = self::$preferredXlsxAdapter ?? self::$preferredXslxAdapter;
+        if ($preferred !== null) {
+            return $preferred;
         }
         if (class_exists(\LeKoala\Baresheet\XlsxReader::class)) {
             return self::BARESHEET;
@@ -423,8 +428,8 @@ class SpreadCompat
             return $arr;
         }
         $matches = [];
-        preg_match_all("/<(?:dc|cp):([\w]*)>(.*)<\/(?:dc|cp):([\w]*)>/", $props, $matches);
-        $combine = array_combine($matches[1], $matches[2]);
+        preg_match_all("/<(dc|cp):(\w+)>(.*?)<\/\\1:\\2>/", $props, $matches);
+        $combine = array_combine($matches[2], $matches[3]);
         if ($combine) {
             $arr = array_merge($arr, $combine);
         }

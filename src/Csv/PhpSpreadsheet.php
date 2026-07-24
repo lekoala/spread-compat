@@ -48,7 +48,11 @@ class PhpSpreadsheet extends CsvAdapter
             foreach ($cellIterator as $cell) {
                 $data[] = $cell->getValue();
             }
-            if (empty($data) || $data[0] === null) {
+            $empty = !array_filter(
+                $data,
+                static fn ($value) => $value !== null && $value !== ''
+            );
+            if ($empty) {
                 continue;
             }
             if ($this->assoc) {
@@ -165,8 +169,9 @@ class PhpSpreadsheet extends CsvAdapter
         $writer = $this->getWriter($data);
 
         SpreadCompat::outputHeaders('text/csv', $filename);
-        ob_end_clean();
-        ob_start();
+        if (ob_get_level() > 0) {
+            ob_clean();
+        }
         $writer->save('php://output');
     }
 }

@@ -15,6 +15,11 @@ abstract class XlsAdapter implements SpreadInterface
 
     public bool $assoc = false;
     public ?string $creator = null;
+    public ?string $title = null;
+    public ?string $subject = null;
+    public ?string $keywords = null;
+    public ?string $description = null;
+    public ?string $category = null;
     public ?string $autofilter = null;
     public ?string $freezePane = null;
 }

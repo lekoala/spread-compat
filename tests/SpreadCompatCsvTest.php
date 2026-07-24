@@ -290,6 +290,14 @@ class SpreadCompatCsvTest extends TestCase
         self::assertArrayHasKey('email', $data[0]);
     }
 
+    public function testSpreadsheetDontSkipRowsWithEmptyFirstColumn()
+    {
+        $PhpSpreadsheet = new PhpSpreadsheet();
+        $data = iterator_to_array($PhpSpreadsheet->readString(",foo,bar\njohn,doe,john.doe@example.com"));
+        self::assertCount(2, $data, "Row with an empty first cell should not be dropped: " . json_encode($data));
+        self::assertEquals(['', 'foo', 'bar'], $data[0]);
+    }
+
     public function testSpreadsheetCanWriteCsv()
     {
         $PhpSpreadsheet = new PhpSpreadsheet();

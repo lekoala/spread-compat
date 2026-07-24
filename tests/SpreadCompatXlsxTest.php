@@ -160,6 +160,65 @@ class SpreadCompatXlsxTest extends TestCase
         self::assertNotEquals($string, $string2);
     }
 
+    public function testSpreadsheetDontSkipEmptyCols()
+    {
+        $PhpSpreadsheet = new PhpSpreadsheet();
+        $PhpSpreadsheet->assoc = true;
+        $data = $PhpSpreadsheet->readFile(__DIR__ . '/data/empty-col.xlsx');
+
+        $arr = iterator_to_array($data);
+        self::assertEquals([
+            [
+                'col1' => "v1",
+                'col2' => "v2",
+                'col3' => null,
+                'col4' => "v4",
+            ],
+            [
+                'col1' => "v1",
+                'col2' => null,
+                'col3' => null,
+                'col4' => "v4",
+            ],
+            [
+                'col1' => null,
+                'col2' => "v2",
+                'col3' => "v3",
+                'col4' => null,
+            ]
+        ], $arr, "A row with an empty first cell should not be dropped");
+    }
+
+    public function testSpreadsheetAppliesDocumentProperties()
+    {
+        $PhpSpreadsheet = new PhpSpreadsheet();
+        $string = $PhpSpreadsheet->writeString([
+            [
+                "john",
+                "doe",
+                "john.doe@example.com"
+            ]
+        ], ...[
+            'creator' => 'test creator',
+            'title' => 'test title',
+            'subject' => 'test subject',
+            'description' => 'test description',
+            'keywords' => 'test keywords',
+            'category' => 'test category',
+        ]);
+
+        $tmpFile = SpreadCompat::stringToTempFile($string);
+        $props = SpreadCompat::excelProperties($tmpFile);
+        unlink($tmpFile);
+
+        self::assertEquals('test creator', $props['creator']);
+        self::assertEquals('test title', $props['title']);
+        self::assertEquals('test subject', $props['subject']);
+        self::assertEquals('test description', $props['description']);
+        self::assertEquals('test keywords', $props['keywords']);
+        self::assertEquals('test category', $props['category']);
+    }
+
     public function testSimpleCanReadXlsx()
     {
         $Simple = new Simple();

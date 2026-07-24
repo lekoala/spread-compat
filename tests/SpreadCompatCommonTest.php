@@ -234,4 +234,32 @@ class SpreadCompatCommonTest extends TestCase
         self::assertEquals('AA100', SpreadCompat::excelCell(99, 26));
         self::assertEquals('XFD16384', SpreadCompat::excelCell(16383, 16383));
     }
+
+    public function testPreferredXlsxAdapter()
+    {
+        $originalXlsx = SpreadCompat::$preferredXlsxAdapter;
+        $originalXslx = SpreadCompat::$preferredXslxAdapter;
+
+        try {
+            SpreadCompat::$preferredXlsxAdapter = null;
+            SpreadCompat::$preferredXslxAdapter = null;
+
+            // Correctly spelled property is used when set
+            SpreadCompat::$preferredXlsxAdapter = SpreadCompat::NATIVE;
+            self::assertEquals(SpreadCompat::NATIVE, SpreadCompat::getAdapterName('xlsx'));
+
+            // Legacy typo'd property still works for backward compatibility
+            SpreadCompat::$preferredXlsxAdapter = null;
+            SpreadCompat::$preferredXslxAdapter = SpreadCompat::OPEN_SPOUT;
+            self::assertEquals(SpreadCompat::OPEN_SPOUT, SpreadCompat::getAdapterName('xlsx'));
+
+            // Correctly spelled property takes precedence over the legacy one
+            SpreadCompat::$preferredXlsxAdapter = SpreadCompat::NATIVE;
+            SpreadCompat::$preferredXslxAdapter = SpreadCompat::OPEN_SPOUT;
+            self::assertEquals(SpreadCompat::NATIVE, SpreadCompat::getAdapterName('xlsx'));
+        } finally {
+            SpreadCompat::$preferredXlsxAdapter = $originalXlsx;
+            SpreadCompat::$preferredXslxAdapter = $originalXslx;
+        }
+    }
 }

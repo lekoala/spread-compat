@@ -53,7 +53,11 @@ trait PhpSpreadsheetUtils
                 $v = $cell->getValue();
                 $data[] = $v;
             }
-            if (empty($data) || $data[0] === null) {
+            $empty = !array_filter(
+                $data,
+                static fn ($value) => $value !== null && $value !== ''
+            );
+            if ($empty) {
                 continue;
             }
             if ($this->assoc) {
@@ -95,6 +99,28 @@ trait PhpSpreadsheetUtils
         if ($this->freezePane) {
             $sheet->freezePane($this->freezePane);
         }
+
+        $properties = $spreadsheet->getProperties();
+        if ($this->creator !== null) {
+            $properties->setCreator($this->creator);
+            $properties->setLastModifiedBy($this->creator);
+        }
+        if ($this->title !== null) {
+            $properties->setTitle($this->title);
+        }
+        if ($this->subject !== null) {
+            $properties->setSubject($this->subject);
+        }
+        if ($this->description !== null) {
+            $properties->setDescription($this->description);
+        }
+        if ($this->keywords !== null) {
+            $properties->setKeywords($this->keywords);
+        }
+        if ($this->category !== null) {
+            $properties->setCategory($this->category);
+        }
+
         $class = $this->getWriterClass();
         /** @var \PhpOffice\PhpSpreadsheet\Writer\Xls|\PhpOffice\PhpSpreadsheet\Writer\Xlsx $writer */
         $writer = new ($class)($spreadsheet);
@@ -115,8 +141,9 @@ trait PhpSpreadsheetUtils
         $writer = $this->getWriter($data);
 
         SpreadCompat::outputHeaders($this->getMimetype(), $filename);
-        ob_end_clean();
-        ob_start();
+        if (ob_get_level() > 0) {
+            ob_clean();
+        }
         $writer->save('php://output');
     }
 }
