@@ -219,6 +219,55 @@ class SpreadCompatXlsxTest extends TestCase
         self::assertEquals('test category', $props['category']);
     }
 
+    public function testSpreadsheetRoundtripsWrittenData()
+    {
+        $data = [
+            ["fname", "sname", "email"],
+            ["john", "doe", "john.doe@example.com"],
+            ["jane", "doe", "jane.doe@example.com"],
+        ];
+
+        $writer = new PhpSpreadsheet();
+        $string = $writer->writeString($data, ...[
+            'autofilter' => 'A1:C1',
+            'freezePane' => 'A2',
+        ]);
+
+        $tmpFile = SpreadCompat::stringToTempFile($string);
+        $reader = new PhpSpreadsheet();
+        $arr = iterator_to_array($reader->readFile($tmpFile));
+        unlink($tmpFile);
+
+        self::assertEquals($data, $arr, "Data written by PhpSpreadsheet should be read back unchanged");
+    }
+
+    /**
+     * PhpSpreadsheet 5.9 stores integers longer than 15 digits as strings via the
+     * default value binder, to avoid float precision loss on large identifiers
+     * (phone numbers, INAMI numbers, external ids, etc).
+     */
+    public function testSpreadsheetPreservesLargeIntegersAsStrings()
+    {
+        $bigNumber = "12345678901234567"; // 17 digits
+
+        $writer = new PhpSpreadsheet();
+        $string = $writer->writeString([
+            ["id", "name"],
+            [$bigNumber, "john"],
+        ]);
+
+        $tmpFile = SpreadCompat::stringToTempFile($string);
+        $reader = new PhpSpreadsheet();
+        $arr = iterator_to_array($reader->readFile($tmpFile, assoc: true));
+        unlink($tmpFile);
+
+        self::assertEquals(
+            $bigNumber,
+            $arr[0]['id'],
+            "A 17-digit identifier must round-trip exactly, without float precision loss or scientific notation"
+        );
+    }
+
     public function testSimpleCanReadXlsx()
     {
         $Simple = new Simple();
