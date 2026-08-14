@@ -22,15 +22,19 @@ class SpreadCompatCsvTest extends TestCase
 
     public function testAutoSeparator()
     {
-        SpreadCompat::$preferredCsvAdapter = SpreadCompat::NATIVE;
-        $data = iterator_to_array(SpreadCompat::read(__DIR__ . '/data/auto.csv', separator: 'auto'));
-        self::assertCount(101, $data);
-        self::assertCount(4, $data[0]);
+        $original = SpreadCompat::$preferredCsvAdapter;
+        try {
+            SpreadCompat::$preferredCsvAdapter = SpreadCompat::NATIVE;
+            $data = iterator_to_array(SpreadCompat::read(__DIR__ . '/data/auto.csv', separator: 'auto'));
+            self::assertCount(101, $data);
+            self::assertCount(4, $data[0]);
 
-        $data = iterator_to_array(SpreadCompat::read(__DIR__ . '/data/auto2.csv', separator: 'auto'));
-        self::assertCount(101, $data);
-        self::assertCount(4, $data[0]);
-        SpreadCompat::$preferredCsvAdapter = null;
+            $data = iterator_to_array(SpreadCompat::read(__DIR__ . '/data/auto2.csv', separator: 'auto'));
+            self::assertCount(101, $data);
+            self::assertCount(4, $data[0]);
+        } finally {
+            SpreadCompat::$preferredCsvAdapter = $original;
+        }
     }
 
     public function testOpenSpoutCanReadCsv()

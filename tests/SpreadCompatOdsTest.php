@@ -102,4 +102,42 @@ class SpreadCompatOdsTest extends TestCase
         self::assertEquals('test', $props['meta']['creator']);
         unlink($tmpFile);
     }
+
+    public function testFacadeCanWriteOdsToFile()
+    {
+        $data = [
+            ['fname', 'sname', 'email'],
+            ['john', 'doe', 'john.doe@example.com'],
+        ];
+        $tmpFile = SpreadCompat::getTempFilename() . '.ods';
+        $res = SpreadCompat::write($data, $tmpFile);
+        self::assertTrue($res);
+        self::assertTrue(is_file($tmpFile));
+
+        $decoded = iterator_to_array(SpreadCompat::read($tmpFile, assoc: true));
+        self::assertCount(1, $decoded);
+        self::assertEquals('john', $decoded[0]['fname']);
+        unlink($tmpFile);
+    }
+
+    public function testFacadeOdsHeaders()
+    {
+        $data = [
+            ['john', 'doe'],
+            ['jane', 'roe'],
+        ];
+        $string = SpreadCompat::writeString(
+            $data,
+            'ods',
+            adapter: SpreadCompat::BARESHEET,
+            headers: ['firstname', 'surname']
+        );
+        self::assertNotEmpty($string);
+
+        $decoded = iterator_to_array(
+            SpreadCompat::readString($string, 'ods', adapter: SpreadCompat::BARESHEET, assoc: true)
+        );
+        self::assertEquals('john', $decoded[0]['firstname']);
+        self::assertEquals('jane', $decoded[1]['firstname']);
+    }
 }

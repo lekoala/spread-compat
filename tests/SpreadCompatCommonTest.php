@@ -7,6 +7,7 @@ namespace LeKoala\SpreadCompat\Tests;
 use LeKoala\SpreadCompat\Common\Options;
 use LeKoala\SpreadCompat\Csv\Native;
 use LeKoala\SpreadCompat\SpreadCompat;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class SpreadCompatCommonTest extends TestCase
@@ -78,26 +79,198 @@ class SpreadCompatCommonTest extends TestCase
         self::assertTrue('ods' == SpreadCompat::getExtensionForContent($ods), "Content is: $ods");
     }
 
-    public function testFacadeCanWriteString()
+    public static function writeStringFormsProvider(): array
+    {
+        return [
+            'csv' => ['csv'],
+            'xlsx' => ['xlsx'],
+            'ods' => ['ods'],
+        ];
+    }
+
+    #[DataProvider('writeStringFormsProvider')]
+    public function testFacadeCanWriteString(string $ext)
     {
         $data = [
             ['firstname', 'surname', 'email'],
             ['john', 'doe', 'john.doe@example.com'],
         ];
 
-        foreach (['csv', 'xlsx', 'ods'] as $ext) {
-            $string = SpreadCompat::writeString($data, $ext);
+        // All three public forms must produce the same result and round-trip
+        $forms = [
+            SpreadCompat::writeString($data, $ext),
+            SpreadCompat::writeString($data, extension: $ext),
+            SpreadCompat::writeString($data, adapter: SpreadCompat::BARESHEET, extension: $ext),
+        ];
+
+        foreach ($forms as $string) {
             self::assertNotEmpty($string, "writeString for $ext");
             $decoded = iterator_to_array(SpreadCompat::readString($string, $ext, assoc: true));
             self::assertCount(1, $decoded, "roundtrip for $ext");
             self::assertEquals('john', $decoded[0]['firstname'], "roundtrip for $ext");
         }
+    }
 
-        // The extension option is honored as well
-        $string = SpreadCompat::writeString($data, extension: 'xlsx');
+    public function testFacadeCanOutput()
+    {
+        $data = [
+            ['firstname', 'surname', 'email'],
+            ['john', 'doe', 'john.doe@example.com'],
+        ];
+
+        ob_start();
+        SpreadCompat::output($data, 'test.csv', adapter: SpreadCompat::BARESHEET);
+        $out = ob_get_clean();
+
+        self::assertNotEmpty($out);
+        self::assertSame(
+            SpreadCompat::writeString($data, 'csv', adapter: SpreadCompat::BARESHEET),
+            $out
+        );
+    }
+
+    public function testConfigureEquivalence()
+    {
+        $named = new Native();
+        $named->configure(separator: ';');
+        $array = new Native();
+        $array->configure(['separator' => ';']);
+        $options = new Native();
+        $options->configure(new Options(separator: ';'));
+
+        self::assertEquals(';', $named->separator);
+        self::assertEquals($named->separator, $array->separator);
+        self::assertEquals($named->separator, $options->separator);
+
+        // Options and named arguments can be mixed: both must be applied
+        $mixed = new Native();
+        $mixed->configure(new Options(separator: ';'), bom: false);
+        self::assertEquals(';', $mixed->separator);
+        self::assertFalse($mixed->bom);
+
+        // Same for arrays
+        $mixed = new Native();
+        $mixed->configure(['separator' => ';'], bom: false);
+        self::assertEquals(';', $mixed->separator);
+        self::assertFalse($mixed->bom);
+    }
+
+    public function testConfigurePrecedenceLastWins()
+    {
+        $csv = new Native();
+        $csv->configure(new Options(separator: ','), separator: ';');
+        self::assertEquals(';', $csv->separator);
+
+        $csv = new Native();
+        $csv->configure(['separator' => ','], separator: ';');
+        self::assertEquals(';', $csv->separator);
+
+        $csv = new Native();
+        $csv->configure(new Options(separator: ';'), separator: ',');
+        self::assertEquals(',', $csv->separator);
+    }
+
+    public function testWriteStringWithOptionsExtension()
+    {
+        $data = [
+            ['firstname', 'surname', 'email'],
+            ['john', 'doe', 'john.doe@example.com'],
+        ];
+
+        $opts = new Options(extension: 'xlsx');
+        $string = SpreadCompat::writeString($data, null, $opts);
         self::assertNotEmpty($string);
+        self::assertStringStartsWith('PK', $string, "Options extension must select the xlsx adapter");
+
         $decoded = iterator_to_array(SpreadCompat::readString($string, 'xlsx', assoc: true));
         self::assertEquals('john', $decoded[0]['firstname']);
+    }
+
+    public function testAdapterSelectionNamedArguments()
+    {
+        $csv = file_get_contents(__DIR__ . '/data/basic.csv');
+        $data = iterator_to_array(SpreadCompat::readString($csv, adapter: SpreadCompat::BARESHEET));
+        self::assertNotEmpty($data);
+
+        // adapter + extension is the structurant pair of the facade
+        $xlsx = file_get_contents(__DIR__ . '/data/basic.xlsx');
+        $data = iterator_to_array(SpreadCompat::readString($xlsx, adapter: SpreadCompat::BARESHEET, extension: 'xlsx'));
+        self::assertCount(1, $data);
+        self::assertCount(3, $data[0]);
+    }
+
+    public function testGetAdapterNameThrowsOnUnsupportedExtension()
+    {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('No adapter found for wat');
+        SpreadCompat::getAdapterName('wat');
+    }
+
+    public function testGetAdapterByNameThrowsOnUnknownAdapter()
+    {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Invalid adapter');
+        SpreadCompat::getAdapterByName('xlsx', 'Wat');
+    }
+
+    public function testWriteStringThrowsWithoutAdapterOrExtension()
+    {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('No adapter or extension specified for string');
+        SpreadCompat::writeString([
+            ['firstname', 'surname', 'email'],
+            ['john', 'doe', 'john.doe@example.com'],
+        ]);
+    }
+
+    public function testNativeIsBaresheetAlias()
+    {
+        self::assertInstanceOf(\LeKoala\SpreadCompat\Csv\Baresheet::class, new \LeKoala\SpreadCompat\Csv\Native());
+        self::assertInstanceOf(\LeKoala\SpreadCompat\Xlsx\Baresheet::class, new \LeKoala\SpreadCompat\Xlsx\Native());
+        self::assertInstanceOf(\LeKoala\SpreadCompat\Ods\Baresheet::class, new \LeKoala\SpreadCompat\Ods\Native());
+    }
+
+    public static function baresheetExtensionsProvider(): array
+    {
+        return [
+            'xlsx' => ['xlsx'],
+            'ods' => ['ods'],
+        ];
+    }
+
+    #[DataProvider('baresheetExtensionsProvider')]
+    public function testBaresheetValuesPassThrough(string $ext)
+    {
+        $data = [
+            ['name' => 'null', 'value' => null],
+            ['name' => 'string', 'value' => '123'],
+            ['name' => 'int', 'value' => 123],
+            ['name' => 'float', 'value' => 12.5],
+            ['name' => 'bool', 'value' => true],
+            ['name' => 'date', 'value' => '2024-01-15'],
+            ['name' => 'datetime', 'value' => '2024-01-15 10:30:00'],
+            ['name' => 'time', 'value' => '10:30:00'],
+        ];
+        $string = SpreadCompat::writeString($data, $ext, adapter: SpreadCompat::BARESHEET);
+        self::assertNotEmpty($string);
+
+        $facade = iterator_to_array(
+            SpreadCompat::readString($string, $ext, adapter: SpreadCompat::BARESHEET, assoc: true)
+        );
+        $raw = iterator_to_array($this->rawReader($ext)->readString($string));
+
+        self::assertSame($raw, $facade, "SpreadCompat must not alter Baresheet values for $ext");
+    }
+
+    private function rawReader(string $ext): \LeKoala\Baresheet\ReaderInterface
+    {
+        $reader = match ($ext) {
+            'xlsx' => new \LeKoala\Baresheet\XlsxReader(),
+            'ods' => new \LeKoala\Baresheet\OdsReader(),
+            default => throw new \InvalidArgumentException("Unsupported extension $ext"),
+        };
+        $reader->assoc = true;
+        return $reader;
     }
 
     public function testCanSpecifyAdapter()
