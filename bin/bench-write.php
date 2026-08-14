@@ -9,6 +9,7 @@ use LeKoala\SpreadCompat\Xlsx\Native as XlsxNative;
 use LeKoala\SpreadCompat\Xlsx\PhpSpreadsheet as XlsxPhpSpreadsheet;
 use LeKoala\SpreadCompat\Xlsx\OpenSpout as XlsxOpenSpout;
 use LeKoala\SpreadCompat\Xlsx\Simple;
+use LeKoala\SpreadCompat\Xlsx\Xlswriter;
 use LeKoala\SpreadCompat\Ods\Native as OdsNative;
 use LeKoala\SpreadCompat\Ods\OpenSpout as OdsOpenSpout;
 
@@ -19,6 +20,16 @@ $sizes = [
     '50K'  => 50000,
 ];
 
+$xlsxWriters = [
+    XlsxNative::class,
+    Simple::class,
+    XlsxOpenSpout::class,
+    XlsxPhpSpreadsheet::class,
+];
+if (extension_loaded('xlswriter')) {
+    array_unshift($xlsxWriters, Xlswriter::class);
+}
+
 $formats = [
     'csv' => [
         League::class,
@@ -26,12 +37,7 @@ $formats = [
         Native::class,
         PhpSpreadsheet::class
     ],
-    'xlsx' => [
-        Simple::class,
-        XlsxOpenSpout::class,
-        XlsxPhpSpreadsheet::class,
-        XlsxNative::class,
-    ],
+    'xlsx' => $xlsxWriters,
     'ods' => [
         OdsOpenSpout::class,
         OdsNative::class,

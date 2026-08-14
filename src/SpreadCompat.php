@@ -22,6 +22,7 @@ class SpreadCompat
     public const SIMPLE = "Simple";
     public const NATIVE = "Native";
     public const BARESHEET = "Baresheet";
+    public const XLSWRITER = "Xlswriter";
 
     public const EXT_XLS = "xls";
     public const EXT_XLSX = "xlsx";
@@ -92,6 +93,10 @@ class SpreadCompat
         $preferred = self::$preferredXlsxAdapter ?? self::$preferredXslxAdapter;
         if ($preferred !== null) {
             return $preferred;
+        }
+        // The C extension is the fastest option available
+        if (extension_loaded('xlswriter')) {
+            return self::XLSWRITER;
         }
         if (class_exists(\LeKoala\Baresheet\XlsxReader::class)) {
             return self::BARESHEET;

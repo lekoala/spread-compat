@@ -11,6 +11,7 @@ use LeKoala\SpreadCompat\SpreadCompat;
 use LeKoala\SpreadCompat\Xlsx\Native;
 use LeKoala\SpreadCompat\Xlsx\OpenSpout;
 use LeKoala\SpreadCompat\Xlsx\PhpSpreadsheet;
+use LeKoala\SpreadCompat\Xlsx\Xlswriter;
 
 class SpreadCompatXlsxTest extends TestCase
 {
@@ -272,6 +273,110 @@ class SpreadCompatXlsxTest extends TestCase
             $arr[0]['id'],
             "A 17-digit identifier must round-trip exactly as a string, without float precision loss or scientific notation"
         );
+    }
+
+    public function testXlswriterCanReadXlsx()
+    {
+        if (!extension_loaded('xlswriter')) {
+            self::markTestSkipped('xlswriter extension not available');
+        }
+
+        $xlswriter = new Xlswriter();
+        $data = iterator_to_array($xlswriter->readFile(__DIR__ . '/data/empty.xlsx'));
+        self::assertCount(0, $data);
+
+        $xlswriter = new Xlswriter();
+        $data = iterator_to_array($xlswriter->readFile(__DIR__ . '/data/basic.xlsx'));
+        self::assertCount(1, $data);
+        self::assertCount(3, $data[0]);
+
+        $xlswriter = new Xlswriter();
+        $data = iterator_to_array($xlswriter->readFile(__DIR__ . '/data/header.xlsx', assoc: true));
+        self::assertCount(1, $data);
+        self::assertCount(4, $data[0]);
+    }
+
+    public function testXlswriterDontSkipEmptyCols()
+    {
+        if (!extension_loaded('xlswriter')) {
+            self::markTestSkipped('xlswriter extension not available');
+        }
+
+        $xlswriter = new Xlswriter();
+        $xlswriter->assoc = true;
+        $data = $xlswriter->readFile(__DIR__ . '/data/empty-col.xlsx');
+
+        $arr = iterator_to_array($data);
+        self::assertEquals([
+            [
+                'col1' => "v1",
+                'col2' => "v2",
+                'col3' => null,
+                'col4' => "v4",
+            ],
+            [
+                'col1' => "v1",
+                'col2' => null,
+                'col3' => null,
+                'col4' => "v4",
+            ],
+            [
+                'col1' => null,
+                'col2' => "v2",
+                'col3' => "v3",
+                'col4' => null,
+            ]
+        ], $arr, "A row with an empty first cell should not be dropped");
+    }
+
+    public function testXlswriterCanWriteXlsx()
+    {
+        if (!extension_loaded('xlswriter')) {
+            self::markTestSkipped('xlswriter extension not available');
+        }
+
+        $xlswriter = new Xlswriter();
+        $string = $xlswriter->writeString([
+            [
+                "firstname",
+                "surname",
+                "email"
+            ],
+            [
+                "john",
+                "doe",
+                "john.doe@example.com"
+            ]
+        ]);
+        self::assertStringContainsString('[Content_Types].xml', $string);
+
+        $xlswriter = new Xlswriter();
+        $data = iterator_to_array($xlswriter->readString($string, assoc: true));
+        self::assertEquals([
+            [
+                'firstname' => "john",
+                'surname' => "doe",
+                'email' => "john.doe@example.com",
+            ]
+        ], $data);
+    }
+
+    public function testXlswriterReadDates()
+    {
+        if (!extension_loaded('xlswriter')) {
+            self::markTestSkipped('xlswriter extension not available');
+        }
+
+        $xlswriter = new Xlswriter();
+        $xlswriter->assoc = true;
+        $data = $xlswriter->readFile(__DIR__ . '/data/date.xlsx');
+
+        $arr = iterator_to_array($data);
+
+        $firstRow = $arr[0];
+        self::assertEquals('2016-10-14', $firstRow['BirthDate']);
+        self::assertEquals('2025-01-01 10:00:00', $firstRow['Created']);
+        self::assertEquals('10:00:00', $firstRow['BestTime']);
     }
 
     public function testSimpleCanReadXlsx()

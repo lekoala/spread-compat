@@ -11,6 +11,9 @@ Ideally, importing single sheets of csv, excel or ods should be just a matter of
 
 ## Supported packages
 
+Xlswriter: xlsx import/export using the xlswriter C extension. Matches Baresheet on read, and is the fastest writer (constant memory streaming).
+[https://github.com/viest/php-ext-xlswriter](https://github.com/viest/php-ext-xlswriter)
+
 Baresheet (Native): very fast csv, xlsx and ods import/export, but limited features. Can read/output streams. It is used as our default native adapter.
 [https://github.com/lekoala/baresheet](https://github.com/lekoala/baresheet)
 
