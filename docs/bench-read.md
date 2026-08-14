@@ -10,21 +10,27 @@ This scenario reflects real-world performance where setup overhead becomes negli
 
 ### CSV
 
-LeKoala\SpreadCompat\Csv\Native : 0.0726
-LeKoala\SpreadCompat\Csv\League : 0.1258
-LeKoala\SpreadCompat\Csv\OpenSpout : 0.2333
+```
+LeKoala\SpreadCompat\Csv\Native : 0.0765
+LeKoala\SpreadCompat\Csv\League : 0.1332
+LeKoala\SpreadCompat\Csv\OpenSpout : 0.2547
+```
 
 ### XLSX
 
-LeKoala\SpreadCompat\Xlsx\Native : 0.3998
-LeKoala\SpreadCompat\Xlsx\Xlswriter : 0.4015
-LeKoala\SpreadCompat\Xlsx\Simple : 0.7744
-LeKoala\SpreadCompat\Xlsx\OpenSpout : 4.5792
+```
+LeKoala\SpreadCompat\Xlsx\Native : 0.3964
+LeKoala\SpreadCompat\Xlsx\Xlswriter : 0.4233
+LeKoala\SpreadCompat\Xlsx\Simple : 0.8936
+LeKoala\SpreadCompat\Xlsx\OpenSpout : 2.7753
+```
 
 ### ODS
 
-LeKoala\SpreadCompat\Ods\Native : 0.978
-LeKoala\SpreadCompat\Ods\OpenSpout : 4.5854
+```
+LeKoala\SpreadCompat\Ods\Native : 0.4698
+LeKoala\SpreadCompat\Ods\OpenSpout : 1.5858
+```
 
 ## 2.5K Rows (Small Dataset)
 
@@ -32,21 +38,27 @@ In very small datasets, libraries with fewer features (and thus less setup logic
 
 ### CSV (2.5K)
 
-LeKoala\SpreadCompat\Csv\Native : 0.0066
-LeKoala\SpreadCompat\Csv\League : 0.0206
-LeKoala\SpreadCompat\Csv\OpenSpout : 0.0266
-LeKoala\SpreadCompat\Csv\PhpSpreadsheet : 0.5874
+```
+LeKoala\SpreadCompat\Csv\Native : 0.0034
+LeKoala\SpreadCompat\Csv\OpenSpout : 0.0129
+LeKoala\SpreadCompat\Csv\League : 0.0173
+LeKoala\SpreadCompat\Csv\PhpSpreadsheet : 0.2687
+```
 
 ### XLSX (2.5K)
 
-LeKoala\SpreadCompat\Xlsx\Native : 0.0445
-LeKoala\SpreadCompat\Xlsx\Xlswriter : 0.0507
-LeKoala\SpreadCompat\Xlsx\Simple : 0.09
-LeKoala\SpreadCompat\Xlsx\OpenSpout : 0.377
-LeKoala\SpreadCompat\Xlsx\PhpSpreadsheet : 0.642
+```
+LeKoala\SpreadCompat\Xlsx\Native : 0.0203
+LeKoala\SpreadCompat\Xlsx\Xlswriter : 0.0254
+LeKoala\SpreadCompat\Xlsx\Simple : 0.04
+LeKoala\SpreadCompat\Xlsx\OpenSpout : 0.1434
+LeKoala\SpreadCompat\Xlsx\PhpSpreadsheet : 0.3184
+```
 
 ### ODS (2.5K)
 
-LeKoala\SpreadCompat\Ods\Native : 0.0483
-LeKoala\SpreadCompat\Ods\OpenSpout : 0.2473
+```
+LeKoala\SpreadCompat\Ods\Native : 0.0242
+LeKoala\SpreadCompat\Ods\OpenSpout : 0.0904
+```
 

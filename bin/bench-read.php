@@ -114,6 +114,7 @@ foreach ($sizes as $sizeName => $rowCount) {
         }
         echo PHP_EOL . PHP_EOL;
 
+        echo '```' . PHP_EOL;
         $results = [];
         foreach ($times[$format] as $class => $runTimes) {
             $results[$class] = round(array_sum($runTimes) / count($runTimes), 4);
@@ -123,6 +124,6 @@ foreach ($sizes as $sizeName => $rowCount) {
         foreach ($results as $class => $averageTime) {
             echo "$class : " . $averageTime . PHP_EOL;
         }
-        echo PHP_EOL;
+        echo '```' . PHP_EOL . PHP_EOL;
     }
 }
