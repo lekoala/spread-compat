@@ -39,7 +39,7 @@
         "viest/php-ext-xlswriter-ide-helper": "dev-master"
     },
     "suggest": {
-        "viest/php-ext-xlswriter": "Use the xlswriter C extension for the fastest xlsx read/write",
+        "viest/php-ext-xlswriter": "Use the xlswriter C extension for maximum XLSX write performance",
         "shuchkin/simplexlsx": "Simple xlsx read support",
         "openspout/openspout": "Read/write support for xlsx, csv and ods",
         "phpoffice/phpspreadsheet": "Read/write support for xls, xlsx, csv and ods",

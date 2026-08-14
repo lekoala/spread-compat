@@ -627,4 +627,88 @@ class SpreadCompatCommonTest extends TestCase
             ['a', 'b'],
         ]);
     }
+
+    public function testOptionsConfigureRejectsUnknownKeys()
+    {
+        $options = new Options();
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('seperator');
+        $options->configure(seperator: ';');
+    }
+
+    public function testPreferredAdapterInvalidForFormatFallsBackToBaresheet()
+    {
+        $originalOds = SpreadCompat::$preferredOdsAdapter;
+        $originalCsv = SpreadCompat::$preferredCsvAdapter;
+
+        try {
+            // League is installed but there is no Ods\League adapter
+            SpreadCompat::$preferredOdsAdapter = SpreadCompat::LEAGUE;
+            self::assertSame(SpreadCompat::BARESHEET, SpreadCompat::getAdapterName('ods'));
+
+            // SimpleXLSX is installed but there is no Csv\Simple adapter
+            SpreadCompat::$preferredCsvAdapter = SpreadCompat::SIMPLE;
+            self::assertSame(SpreadCompat::BARESHEET, SpreadCompat::getAdapterName('csv'));
+        } finally {
+            SpreadCompat::$preferredOdsAdapter = $originalOds;
+            SpreadCompat::$preferredCsvAdapter = $originalCsv;
+        }
+    }
+
+    public static function outputStreamProvider(): array
+    {
+        return [
+            'csv' => ['csv'],
+            'xlsx' => ['xlsx'],
+            'ods' => ['ods'],
+        ];
+    }
+
+    #[DataProvider('outputStreamProvider')]
+    public function testFacadeOutputStreams(string $ext)
+    {
+        $data = [
+            ['firstname', 'surname', 'email'],
+            ['john', 'doe', 'john.doe@example.com'],
+        ];
+
+        ob_start();
+        SpreadCompat::output($data, "test.$ext", adapter: SpreadCompat::BARESHEET, stream: true);
+        $output = ob_get_clean();
+
+        self::assertNotSame('', $output);
+        $rows = iterator_to_array(SpreadCompat::readString($output, $ext, adapter: SpreadCompat::BARESHEET));
+        self::assertCount(2, $rows, "output stream for $ext must produce a readable document");
+        self::assertEquals('john', $rows[1][0]);
+    }
+
+    public static function outputBufferedProvider(): array
+    {
+        return [
+            'xlsx' => ['xlsx'],
+            'ods' => ['ods'],
+        ];
+    }
+
+    #[DataProvider('outputBufferedProvider')]
+    public function testFacadeOutputBuffered(string $ext)
+    {
+        $data = [
+            ['firstname', 'surname', 'email'],
+            ['john', 'doe', 'john.doe@example.com'],
+        ];
+
+        ob_start();
+        SpreadCompat::output($data, "test.$ext", adapter: SpreadCompat::BARESHEET, stream: false);
+        $output = ob_get_clean();
+
+        self::assertNotSame('', $output);
+
+        // Zip-based formats are compared functionally, not byte-identically
+        $expected = SpreadCompat::writeString($data, $ext, adapter: SpreadCompat::BARESHEET);
+        self::assertSame(
+            iterator_to_array(SpreadCompat::readString($expected, $ext, adapter: SpreadCompat::BARESHEET)),
+            iterator_to_array(SpreadCompat::readString($output, $ext, adapter: SpreadCompat::BARESHEET)),
+        );
+    }
 }

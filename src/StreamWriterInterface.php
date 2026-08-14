@@ -6,8 +6,7 @@ namespace LeKoala\SpreadCompat;
 
 /**
  * Optional capability for adapters that can write to a stream resource.
- * Adapters that do not support stream writing simply don't implement this
- * interface and are routed through the file/string APIs instead.
+ * The facade throws when the selected adapter does not support this capability.
  */
 interface StreamWriterInterface
 {

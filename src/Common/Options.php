@@ -48,21 +48,29 @@ class Options
     /**
      * Whether supported adapters stream browser output instead of buffering it.
      */
-    public bool $stream = false;
+    public bool $stream = true;
 
     public function __construct(...$opts)
     {
-        if (empty($opts)) {
-            return;
-        }
+        $this->configure(...$opts);
+    }
 
+    /**
+     * Strict variant of the Configure trait: unknown options are rejected.
+     * Adapters stay permissive via the Configure trait, but a real Options
+     * object must catch typos.
+     */
+    public function configure(...$opts): void
+    {
         $normalized = self::normalize($opts);
         $unknown = array_diff(array_keys($normalized), array_keys(get_object_vars($this)));
         if ($unknown !== []) {
             throw new InvalidArgumentException("Unknown option(s): " . implode(', ', $unknown));
         }
 
-        $this->configure(...$opts);
+        foreach ($normalized as $key => $value) {
+            $this->$key = $value;
+        }
     }
 
     /**

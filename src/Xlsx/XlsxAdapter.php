@@ -21,7 +21,7 @@ abstract class XlsxAdapter implements SpreadInterface
     public ?string $description = null;
     public ?string $category = null;
     public ?string $language = null;
-    public bool $stream = false;
+    public bool $stream = true;
     public ?string $tempPath = null;
     public ?string $autofilter = null;
     public ?string $freezePane = null;

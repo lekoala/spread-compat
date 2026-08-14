@@ -73,11 +73,16 @@ class SpreadCompat
     }
 
     /**
-     * Check that the dependency behind an adapter is actually available,
-     * so we never fall back to an adapter that cannot work.
+     * Check that the adapter class exists for the given format and that the
+     * dependency behind it is actually available, so we never fall back to an
+     * adapter that cannot work.
      */
-    private static function isAdapterAvailable(string $name): bool
+    private static function isAdapterAvailable(string $ext, string $name): bool
     {
+        if (!class_exists(self::getAdapterClass($ext, $name))) {
+            return false;
+        }
+
         return match ($name) {
             self::BARESHEET, self::NATIVE => class_exists(\LeKoala\Baresheet\Spread::class),
             self::XLSWRITER => extension_loaded('xlswriter'),
@@ -91,7 +96,10 @@ class SpreadCompat
 
     private static function getCsvAdapter(): string
     {
-        if (self::$preferredCsvAdapter !== null && self::isAdapterAvailable(self::$preferredCsvAdapter)) {
+        if (
+            self::$preferredCsvAdapter !== null &&
+            self::isAdapterAvailable(self::EXT_CSV, self::$preferredCsvAdapter)
+        ) {
             return self::$preferredCsvAdapter;
         }
 
@@ -102,7 +110,7 @@ class SpreadCompat
     {
         $preferred = self::$preferredXlsxAdapter ?? self::$preferredXslxAdapter;
 
-        if ($preferred !== null && self::isAdapterAvailable($preferred)) {
+        if ($preferred !== null && self::isAdapterAvailable(self::EXT_XLSX, $preferred)) {
             return $preferred;
         }
 
@@ -111,18 +119,29 @@ class SpreadCompat
 
     private static function getOdsAdapter(): string
     {
-        if (self::$preferredOdsAdapter !== null && self::isAdapterAvailable(self::$preferredOdsAdapter)) {
+        if (
+            self::$preferredOdsAdapter !== null &&
+            self::isAdapterAvailable(self::EXT_ODS, self::$preferredOdsAdapter)
+        ) {
             return self::$preferredOdsAdapter;
         }
 
         return self::BARESHEET;
     }
 
+    /**
+     * Build the adapter class name for a given extension and adapter name.
+     * Purely mechanical: no availability logic, that lives in isAdapterAvailable().
+     */
+    private static function getAdapterClass(string $ext, string $name): string
+    {
+        return '\\LeKoala\\SpreadCompat\\' . ucfirst(strtolower($ext)) . '\\' . $name;
+    }
+
     public static function getAdapter(string $ext): SpreadInterface
     {
         $name = self::getAdapterName($ext);
-        $ext = ucfirst(strtolower($ext));
-        $class = '\\LeKoala\\SpreadCompat\\' . $ext . '\\' . $name;
+        $class = self::getAdapterClass($ext, $name);
         if (!class_exists($class)) {
             throw new Exception("Invalid adapter $class");
         }
@@ -131,8 +150,7 @@ class SpreadCompat
 
     public static function getAdapterByName(string $ext, string $name): SpreadInterface
     {
-        $ext = ucfirst(strtolower($ext));
-        $class = '\\LeKoala\\SpreadCompat\\' . $ext . '\\' . $name;
+        $class = self::getAdapterClass($ext, $name);
         if (!class_exists($class)) {
             throw new Exception("Invalid adapter $class");
         }
