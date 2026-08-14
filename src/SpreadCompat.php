@@ -10,6 +10,7 @@ use LeKoala\SpreadCompat\Common\Options;
 use LeKoala\SpreadCompat\Common\ZipUtils;
 use RuntimeException;
 use ZipArchive;
+use BadMethodCallException;
 
 /**
  * This class provides a static facade for adapters
@@ -527,6 +528,34 @@ class SpreadCompat
             $adapter = static::getAdapter($ext);
         }
         return $adapter->writeString($data, ...$opts);
+    }
+
+    /**
+     * Write data to a stream resource instead of a filename.
+     * Only adapters implementing StreamWriterInterface support this.
+     *
+     * @param iterable<array<mixed>> $data
+     * @param string|null $ext
+     * @param mixed ...$opts
+     * @return resource The opened stream containing the data. The caller is responsible for closing it.
+     */
+    public static function writeStream(iterable $data, ?string $ext = null, ...$opts)
+    {
+        $ext = self::getExtensionFromOpts($opts, $ext);
+        $adapter = self::getAdapterFromOpts($opts, $ext);
+        if (!$adapter && !$ext) {
+            throw new Exception("No adapter or extension specified for stream");
+        }
+        if (!$adapter) {
+            $adapter = static::getAdapter($ext);
+        }
+        if (!$adapter instanceof StreamWriterInterface) {
+            throw new BadMethodCallException(sprintf(
+                '%s does not support stream writing',
+                get_class($adapter)
+            ));
+        }
+        return $adapter->writeStream($data, ...$opts);
     }
 
     public static function output(

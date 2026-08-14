@@ -7,8 +7,9 @@ namespace LeKoala\SpreadCompat\Csv;
 use Generator;
 use LeKoala\Baresheet\CsvReader;
 use LeKoala\Baresheet\CsvWriter;
+use LeKoala\SpreadCompat\StreamWriterInterface;
 
-class Baresheet extends CsvAdapter
+class Baresheet extends CsvAdapter implements StreamWriterInterface
 {
     public function readFile(string $filename, ...$opts): Generator
     {
@@ -81,5 +82,21 @@ class Baresheet extends CsvAdapter
         $writer->escapeFormulas = $this->escapeFormulas;
         /** @var iterable<array<float|int|string|\Stringable|null>> $data */
         return $writer->writeString($data);
+    }
+
+    public function writeStream(iterable $data, ...$opts)
+    {
+        $this->configure(...$opts);
+        $writer = new CsvWriter();
+        $writer->separator = $this->separator;
+        $writer->enclosure = $this->enclosure;
+        $writer->escape = $this->escape;
+        $writer->eol = $this->eol;
+        $writer->bom = $this->bom;
+        $writer->outputEncoding = $this->outputEncoding;
+        $writer->headers = $this->headers;
+        $writer->escapeFormulas = $this->escapeFormulas;
+        /** @var iterable<array<float|int|string|\Stringable|null>> $data */
+        return $writer->writeStream($data);
     }
 }

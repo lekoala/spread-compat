@@ -74,6 +74,37 @@ SpreadCompat::output($data, 'myfile.csv');
 exit();
 ```
 
+## Streaming
+
+Reading and writing already streams row by row: read methods return a `Generator` and write
+methods accept any `iterable`, so large datasets never need to be loaded in memory at once.
+
+```php
+// Rows are read lazily
+foreach (SpreadCompat::read('large.xlsx') as $row) {
+    // Do something
+}
+
+// Rows are written lazily
+SpreadCompat::write('large.csv', $rowsGenerator);
+```
+
+For adapters that support it (Baresheet for CSV/XLSX/ODS by default), `writeStream()` writes
+the document to a stream resource instead of a filename:
+
+```php
+$stream = SpreadCompat::writeStream($rows, 'xlsx');
+
+try {
+    // PSR-7, storage API, attachment, ...
+} finally {
+    fclose($stream);
+}
+```
+
+If the selected adapter cannot write to a stream, a `BadMethodCallException` is thrown. For real
+browser streaming, use `output()` instead.
+
 ## Configure
 
 ### Using named arguments

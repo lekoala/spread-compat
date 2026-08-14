@@ -7,8 +7,9 @@ namespace LeKoala\SpreadCompat\Xlsx;
 use Generator;
 use LeKoala\Baresheet\XlsxReader;
 use LeKoala\Baresheet\XlsxWriter;
+use LeKoala\SpreadCompat\StreamWriterInterface;
 
-class Baresheet extends XlsxAdapter
+class Baresheet extends XlsxAdapter implements StreamWriterInterface
 {
     /**
      * Is a given number format code a date/time?
@@ -135,6 +136,15 @@ class Baresheet extends XlsxAdapter
         $this->configureWriter($writer);
         /** @var iterable<array<\DateTimeInterface|float|int|string|\Stringable|null>> $data */
         return $writer->writeString($data);
+    }
+
+    public function writeStream(iterable $data, ...$opts)
+    {
+        $this->configure(...$opts);
+        $writer = new XlsxWriter();
+        $this->configureWriter($writer);
+        /** @var iterable<array<\DateTimeInterface|float|int|string|\Stringable|null>> $data */
+        return $writer->writeStream($data);
     }
 
     private function configureWriter(XlsxWriter $writer): void

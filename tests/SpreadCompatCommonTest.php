@@ -7,6 +7,7 @@ namespace LeKoala\SpreadCompat\Tests;
 use LeKoala\SpreadCompat\Common\Options;
 use LeKoala\SpreadCompat\Csv\Native;
 use LeKoala\SpreadCompat\SpreadCompat;
+use LeKoala\SpreadCompat\StreamWriterInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -563,5 +564,67 @@ class SpreadCompatCommonTest extends TestCase
         );
         self::assertNotEmpty($data);
         self::assertEquals('john', $data[0]['firstname']);
+    }
+
+    public function testBaresheetAdaptersImplementStreamWriter()
+    {
+        self::assertInstanceOf(StreamWriterInterface::class, new \LeKoala\SpreadCompat\Csv\Baresheet());
+        self::assertInstanceOf(StreamWriterInterface::class, new \LeKoala\SpreadCompat\Xlsx\Baresheet());
+        self::assertInstanceOf(StreamWriterInterface::class, new \LeKoala\SpreadCompat\Ods\Baresheet());
+        // Native aliases inherit the capability
+        self::assertInstanceOf(StreamWriterInterface::class, new \LeKoala\SpreadCompat\Csv\Native());
+        self::assertInstanceOf(StreamWriterInterface::class, new \LeKoala\SpreadCompat\Xlsx\Native());
+    }
+
+    public static function writeStreamProvider(): array
+    {
+        return [
+            'csv' => ['csv'],
+            'xlsx' => ['xlsx'],
+            'ods' => ['ods'],
+        ];
+    }
+
+    #[DataProvider('writeStreamProvider')]
+    public function testFacadeWriteStream(string $ext)
+    {
+        $data = [
+            ['firstname', 'surname', 'email'],
+            ['john', 'doe', 'john.doe@example.com'],
+        ];
+
+        $stream = SpreadCompat::writeStream($data, $ext);
+        self::assertIsResource($stream);
+        $contents = stream_get_contents($stream);
+        fclose($stream);
+
+        self::assertNotEmpty($contents);
+        self::assertSame(
+            SpreadCompat::writeString($data, $ext),
+            $contents,
+            "writeStream content must match writeString for $ext"
+        );
+
+        // It round-trips
+        $decoded = iterator_to_array(SpreadCompat::readString($contents, $ext, assoc: true));
+        self::assertEquals('john', $decoded[0]['firstname']);
+    }
+
+    public function testWriteStreamThrowsForNonStreamAdapter()
+    {
+        $this->expectException(\BadMethodCallException::class);
+        $this->expectExceptionMessage('does not support stream writing');
+        SpreadCompat::writeStream([
+            ['a', 'b'],
+        ], 'xlsx', adapter: SpreadCompat::PHP_SPREADSHEET);
+    }
+
+    public function testWriteStreamThrowsWithoutAdapterOrExtension()
+    {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('No adapter or extension specified for stream');
+        SpreadCompat::writeStream([
+            ['a', 'b'],
+        ]);
     }
 }

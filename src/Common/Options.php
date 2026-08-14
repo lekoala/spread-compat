@@ -44,7 +44,10 @@ class Options
     public ?string $category = null;
     public ?string $language = null;
 
-    // Native xlsx
+    // Excel only
+    /**
+     * Whether supported adapters stream browser output instead of buffering it.
+     */
     public bool $stream = false;
 
     public function __construct(...$opts)

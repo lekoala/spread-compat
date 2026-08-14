@@ -7,8 +7,9 @@ namespace LeKoala\SpreadCompat\Ods;
 use Generator;
 use LeKoala\Baresheet\OdsReader;
 use LeKoala\Baresheet\OdsWriter;
+use LeKoala\SpreadCompat\StreamWriterInterface;
 
-class Baresheet extends OdsAdapter
+class Baresheet extends OdsAdapter implements StreamWriterInterface
 {
     public function readFile(string $filename, ...$opts): Generator
     {
@@ -43,6 +44,15 @@ class Baresheet extends OdsAdapter
         $this->configureWriter($writer);
         /** @var iterable<array<\DateTimeInterface|float|int|string|\Stringable|null>> $data */
         return $writer->writeString($data);
+    }
+
+    public function writeStream(iterable $data, ...$opts)
+    {
+        $this->configure(...$opts);
+        $writer = new OdsWriter();
+        $this->configureWriter($writer);
+        /** @var iterable<array<\DateTimeInterface|float|int|string|\Stringable|null>> $data */
+        return $writer->writeStream($data);
     }
 
     private function configureWriter(OdsWriter $writer): void
