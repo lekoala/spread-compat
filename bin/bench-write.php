@@ -16,8 +16,8 @@ use LeKoala\SpreadCompat\Ods\OpenSpout as OdsOpenSpout;
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 $sizes = [
-    '2.5K' => 2500,
     '50K'  => 50000,
+    '2.5K' => 2500,
 ];
 
 $xlsxWriters = [
@@ -46,10 +46,18 @@ $formats = [
 
 $reps = 3;
 
+echo "# Write Benchmark Results" . PHP_EOL . PHP_EOL;
+echo "These benchmarks measure the time it takes to write files using the different adapters." . PHP_EOL . PHP_EOL;
+echo "Since fixed setup overhead (like creating temp streams or evaluating initial logic) can artificially skew results on very small datasets, we provide benchmarks for both small and large data volumes." . PHP_EOL . PHP_EOL;
+
 foreach ($sizes as $sizeName => $rowCount) {
-    echo "======================================" . PHP_EOL;
-    echo "Running $sizeName ($rowCount rows) write benchmark" . PHP_EOL;
-    echo "======================================" . PHP_EOL . PHP_EOL;
+    $label = $sizeName === '50K' ? 'Large Dataset' : 'Small Dataset';
+    echo "## $sizeName Rows ($label)" . PHP_EOL . PHP_EOL;
+    if ($sizeName === '50K') {
+        echo "This scenario reflects real-world performance where setup overhead becomes negligible compared to the processing loop. PhpSpreadsheet is omitted here due to extreme execution times." . PHP_EOL . PHP_EOL;
+    } else {
+        echo "In very small datasets, libraries with fewer features (and thus less setup logic) may briefly appear slightly faster, even if their inner loops are technically less optimized." . PHP_EOL . PHP_EOL;
+    }
 
     $genData = [];
     foreach (range(1, $rowCount) as $i) {
@@ -84,11 +92,18 @@ foreach ($sizes as $sizeName => $rowCount) {
         }
     }
 
-    foreach ($times as $format => $dataFormat) {
-        echo "Results for $format ($sizeName)" . PHP_EOL . PHP_EOL;
+    foreach (['csv', 'xlsx', 'ods'] as $format) {
+        if (!isset($times[$format])) {
+            continue;
+        }
+        echo "### " . strtoupper($format);
+        if ($sizeName !== '50K') {
+            echo " ($sizeName)";
+        }
+        echo PHP_EOL . PHP_EOL;
 
         $results = [];
-        foreach ($dataFormat as $class => $runTimes) {
+        foreach ($times[$format] as $class => $runTimes) {
             $averageTime = round(array_sum($runTimes) / count($runTimes), 4);
             $results[$class] = $averageTime;
         }
@@ -97,7 +112,6 @@ foreach ($sizes as $sizeName => $rowCount) {
         foreach ($results as $class => $averageTime) {
             echo "$class : " . $averageTime . PHP_EOL;
         }
-
         echo PHP_EOL;
     }
 }
