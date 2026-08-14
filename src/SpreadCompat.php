@@ -75,42 +75,19 @@ class SpreadCompat
         if (self::$preferredCsvAdapter !== null) {
             return self::$preferredCsvAdapter;
         }
-        if (class_exists(\LeKoala\Baresheet\CsvReader::class)) {
-            return self::BARESHEET;
-        }
-        if (class_exists(\League\Csv\Reader::class)) {
-            return self::LEAGUE;
-        }
-        if (class_exists(\OpenSpout\Common\Entity\Row::class)) {
-            return self::OPEN_SPOUT;
-        }
-        // You probably don't want to use php spreadsheet for csv
-        return self::NATIVE;
+
+        return self::BARESHEET;
     }
 
     private static function getXlsxAdapter(): string
     {
         $preferred = self::$preferredXlsxAdapter ?? self::$preferredXslxAdapter;
+
         if ($preferred !== null) {
             return $preferred;
         }
-        // The C extension is the fastest option available
-        if (extension_loaded('xlswriter')) {
-            return self::XLSWRITER;
-        }
-        if (class_exists(\LeKoala\Baresheet\XlsxReader::class)) {
-            return self::BARESHEET;
-        }
-        if (class_exists(\Shuchkin\SimpleXLSX::class)) {
-            return self::SIMPLE;
-        }
-        if (class_exists(\OpenSpout\Common\Entity\Row::class)) {
-            return self::OPEN_SPOUT;
-        }
-        if (class_exists(\PhpOffice\PhpSpreadsheet\Worksheet\Row::class)) {
-            return self::PHP_SPREADSHEET;
-        }
-        return self::NATIVE;
+
+        return self::BARESHEET;
     }
 
     private static function getOdsAdapter(): string
@@ -118,16 +95,8 @@ class SpreadCompat
         if (self::$preferredOdsAdapter !== null) {
             return self::$preferredOdsAdapter;
         }
-        if (class_exists(\LeKoala\Baresheet\OdsReader::class)) {
-            return self::BARESHEET;
-        }
-        if (class_exists(\OpenSpout\Common\Entity\Row::class)) {
-            return self::OPEN_SPOUT;
-        }
-        if (class_exists(\PhpOffice\PhpSpreadsheet\Worksheet\Row::class)) {
-            return self::PHP_SPREADSHEET;
-        }
-        return self::NATIVE;
+
+        return self::BARESHEET;
     }
 
     public static function getAdapter(string $ext): SpreadInterface

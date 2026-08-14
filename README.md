@@ -1,6 +1,8 @@
 # Spread Compat
 
-> Easily manipulate PhpSpreadsheet, OpenSpout, League CSV and Baresheet
+> A unified API for fast CSV, XLSX and ODS import/export in PHP
+
+Powered by Baresheet by default, with adapters for PhpSpreadsheet, OpenSpout, Xlswriter, League CSV and SimpleXLSX.
 
 ## Why use this ?
 
@@ -11,31 +13,32 @@ Ideally, importing single sheets of csv, excel or ods should be just a matter of
 
 ## Supported packages
 
-Xlswriter: xlsx import/export using the xlswriter C extension. Matches Baresheet on read, and is the fastest writer (constant memory streaming).
-[https://github.com/viest/php-ext-xlswriter](https://github.com/viest/php-ext-xlswriter)
-
-Baresheet (Native): very fast csv, xlsx and ods import/export, but limited features. Can read/output streams. It is used as our default native adapter.
+**Baresheet (recommended/default):** the reference adapter for Spread Compat. Fast, memory-efficient CSV, XLSX and ODS import/export with streaming support and a consistent API across all three formats. It covers the typical single-sheet import/export use cases Spread Compat is designed for.
 [https://github.com/lekoala/baresheet](https://github.com/lekoala/baresheet)
 
-OpenSpout: fast csv, excel (xlsx) and ods import/export
+Xlswriter: specialized XLSX performance option backed by the C extension. Particularly useful when maximum XLSX write performance is required.
+[https://github.com/viest/php-ext-xlswriter](https://github.com/viest/php-ext-xlswriter)
+
+OpenSpout: fast csv, excel (xlsx) and ods import/export. A good interoperability option for projects that already use it.
 [https://github.com/openspout/openspout](https://github.com/openspout/openspout)
 
-League CSV: very fast csv import/export. Can read streams.
+League CSV: very fast csv import/export. Can read streams. A natural choice for existing League CSV users.
 [https://github.com/thephpleague/csv](https://github.com/thephpleague/csv)
 
-PhpSpreadsheet: slow excel (xls, xlsx) and ods and csv import/export, but more features
+PhpSpreadsheet: excel (xls, xlsx) and ods and csv import/export with advanced features such as complex formatting, formulas or workbook manipulation. The only adapter covering legacy `.xls`. If you need those advanced spreadsheet features, PhpSpreadsheet may be a better fit.
 [https://github.com/PHPOffice/PhpSpreadsheet](https://github.com/PHPOffice/PhpSpreadsheet)
 
-SimpleXLSX: very fast excel import/export
+SimpleXLSX: lightweight xlsx import/export. A simple alternative for existing users.
 [https://github.com/shuchkin/simplexlsx](https://github.com/shuchkin/simplexlsx)
 [https://github.com/shuchkin/simplexlsxgen](https://github.com/shuchkin/simplexlsxgen)
 
-This package will prioritize installed library, by order of performance. You can also pick your preferred default adapter for each format like this:
+**Baresheet is the reference implementation and the recommended default for CSV, XLSX and ODS.** It provides the best overall fit for Spread Compat's single-sheet import/export use case: fast reads and writes, low memory usage, streaming support, and consistent behavior across formats.
+
+Other adapters remain available for projects that already depend on them or need capabilities outside Baresheet's scope.
 
 ```php
-SpreadCompat::$preferredCsvAdapter = SpreadCompat::BARESHEET; // or SpreadCompat::NATIVE
-SpreadCompat::$preferredXlsxAdapter = SpreadCompat::BARESHEET;
-SpreadCompat::$preferredOdsAdapter = SpreadCompat::BARESHEET;
+// Override the default when you specifically need another adapter
+SpreadCompat::$preferredXlsxAdapter = SpreadCompat::XLSWRITER;
 ```
 
 ## Using the facade
@@ -102,7 +105,7 @@ Instead of relying on the static variables, you can choose which adapter to use:
 $csvData = SpreadCompat::readString($csv, adapter: SpreadCompat::BARESHEET);
 // or
 $options = new Options();
-$options->adapter = SpreadCompat::NATIVE;
+$options->adapter = SpreadCompat::BARESHEET;
 $csvData = SpreadCompat::readString($csv, $options);
 ```
 
@@ -136,6 +139,6 @@ Since we can compare our solutions, there is a built in bench script. You can ch
 - [read benchmark](docs/bench-read.md)
 - [write benchmark](docs/bench-write.md)
 
-For simple imports/exports, it's very clear that using the `Native` (Baresheet) adapter is the fastest overall choice.
+For simple imports/exports, it's very clear that using the Baresheet adapter is the fastest overall choice.
 
 Stop wasting cpu cycles right now and please use the most efficient adapter :-)

@@ -235,6 +235,43 @@ class SpreadCompatCommonTest extends TestCase
         self::assertEquals('XFD16384', SpreadCompat::excelCell(16383, 16383));
     }
 
+    public function testDefaultAdaptersAreBaresheet(): void
+    {
+        $originalCsv = SpreadCompat::$preferredCsvAdapter;
+        $originalXlsx = SpreadCompat::$preferredXlsxAdapter;
+        $originalXslx = SpreadCompat::$preferredXslxAdapter;
+        $originalOds = SpreadCompat::$preferredOdsAdapter;
+
+        try {
+            SpreadCompat::$preferredCsvAdapter = null;
+            SpreadCompat::$preferredXlsxAdapter = null;
+            SpreadCompat::$preferredXslxAdapter = null;
+            SpreadCompat::$preferredOdsAdapter = null;
+
+            self::assertSame(SpreadCompat::BARESHEET, SpreadCompat::getAdapterName('csv'));
+            self::assertSame(SpreadCompat::BARESHEET, SpreadCompat::getAdapterName('xlsx'));
+            self::assertSame(SpreadCompat::BARESHEET, SpreadCompat::getAdapterName('ods'));
+
+            self::assertInstanceOf(
+                \LeKoala\SpreadCompat\Csv\Baresheet::class,
+                SpreadCompat::getAdapter('csv')
+            );
+            self::assertInstanceOf(
+                \LeKoala\SpreadCompat\Xlsx\Baresheet::class,
+                SpreadCompat::getAdapter('xlsx')
+            );
+            self::assertInstanceOf(
+                \LeKoala\SpreadCompat\Ods\Baresheet::class,
+                SpreadCompat::getAdapter('ods')
+            );
+        } finally {
+            SpreadCompat::$preferredCsvAdapter = $originalCsv;
+            SpreadCompat::$preferredXlsxAdapter = $originalXlsx;
+            SpreadCompat::$preferredXslxAdapter = $originalXslx;
+            SpreadCompat::$preferredOdsAdapter = $originalOds;
+        }
+    }
+
     public function testPreferredXlsxAdapter()
     {
         $originalXlsx = SpreadCompat::$preferredXlsxAdapter;

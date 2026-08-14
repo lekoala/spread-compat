@@ -271,7 +271,8 @@ class SpreadCompatXlsxTest extends TestCase
         self::assertSame(
             '12345678901234567',
             $arr[0]['id'],
-            "A 17-digit identifier must round-trip exactly as a string, without float precision loss or scientific notation"
+            "A 17-digit identifier must round-trip exactly as a string, " .
+            "without float precision loss or scientific notation"
         );
     }
 
