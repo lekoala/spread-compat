@@ -154,6 +154,9 @@ class SpreadCompat
         if (!class_exists($class)) {
             throw new Exception("Invalid adapter $class");
         }
+        if (!self::isAdapterAvailable($ext, $name)) {
+            throw new Exception(sprintf('Adapter %s is not available for %s', $name, strtolower($ext)));
+        }
         return new ($class);
     }
 

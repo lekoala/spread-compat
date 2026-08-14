@@ -214,6 +214,17 @@ class SpreadCompatCommonTest extends TestCase
         SpreadCompat::getAdapterByName('xlsx', 'Wat');
     }
 
+    public function testGetAdapterByNameThrowsWhenDependencyUnavailable()
+    {
+        if (extension_loaded('xlswriter')) {
+            self::markTestSkipped('xlswriter extension is available');
+        }
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Adapter Xlswriter is not available for xlsx');
+        SpreadCompat::getAdapterByName('xlsx', SpreadCompat::XLSWRITER);
+    }
+
     public function testWriteStringThrowsWithoutAdapterOrExtension()
     {
         $this->expectException(\Exception::class);

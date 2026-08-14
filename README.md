@@ -86,7 +86,7 @@ foreach (SpreadCompat::read('large.xlsx') as $row) {
 }
 
 // Rows are written lazily
-SpreadCompat::write('large.csv', $rowsGenerator);
+SpreadCompat::write($rowsGenerator, 'large.csv');
 ```
 
 For adapters that support it (Baresheet for CSV/XLSX/ODS by default), `writeStream()` writes
@@ -120,7 +120,7 @@ $data = iterator_to_array(SpreadCompat::read('myfile.csv', ...$opts));
 
 ### Using options object
 
-You can also use the `Options` class that regroups all available options for all adapters. Unsupported options are ignored.
+You can also use the `Options` class that regroups all available options for all adapters. `Options` validates option names, while individual adapters silently ignore known options they do not support.
 
 ```php
 $options = new Options();
@@ -151,7 +151,7 @@ By default, this library does NOT escape these characters to ensure that the dat
 If you are generating CSV files for end users to open in Excel and want to protect them from potential formula injection, you should enable the `escapeFormulas` option:
 
 ```php
-SpreadCompat::write('myfile.csv', $data, escapeFormulas: true);
+SpreadCompat::write($data, 'myfile.csv', escapeFormulas: true);
 ```
 
 This will prepend a single quote (`'`) to any cell value that could be interpreted as a formula.

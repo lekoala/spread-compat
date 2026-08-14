@@ -7,8 +7,9 @@ namespace LeKoala\SpreadCompat\Common;
 use InvalidArgumentException;
 
 /**
- * Options regroup all available options for all adapters. Unsupported options
- * are ignored by adapters, but the constructor is strict about unknown names.
+ * Options regroup all available options for all adapters. Options validates
+ * option names, while individual adapters silently ignore known options they
+ * do not support.
  */
 class Options
 {
