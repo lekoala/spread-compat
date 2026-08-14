@@ -272,6 +272,34 @@ class SpreadCompatCommonTest extends TestCase
         }
     }
 
+    public function testUnavailablePreferredAdapterFallsBackToBaresheet(): void
+    {
+        $originalCsv = SpreadCompat::$preferredCsvAdapter;
+        $originalXlsx = SpreadCompat::$preferredXlsxAdapter;
+        $originalXslx = SpreadCompat::$preferredXslxAdapter;
+        $originalOds = SpreadCompat::$preferredOdsAdapter;
+
+        try {
+            SpreadCompat::$preferredCsvAdapter = 'NonExistent';
+            SpreadCompat::$preferredXlsxAdapter = 'NonExistent';
+            SpreadCompat::$preferredXslxAdapter = null;
+            SpreadCompat::$preferredOdsAdapter = 'NonExistent';
+
+            self::assertSame(SpreadCompat::BARESHEET, SpreadCompat::getAdapterName('csv'));
+            self::assertSame(SpreadCompat::BARESHEET, SpreadCompat::getAdapterName('xlsx'));
+            self::assertSame(SpreadCompat::BARESHEET, SpreadCompat::getAdapterName('ods'));
+
+            // An available adapter is still honored
+            SpreadCompat::$preferredXlsxAdapter = SpreadCompat::NATIVE;
+            self::assertSame(SpreadCompat::NATIVE, SpreadCompat::getAdapterName('xlsx'));
+        } finally {
+            SpreadCompat::$preferredCsvAdapter = $originalCsv;
+            SpreadCompat::$preferredXlsxAdapter = $originalXlsx;
+            SpreadCompat::$preferredXslxAdapter = $originalXslx;
+            SpreadCompat::$preferredOdsAdapter = $originalOds;
+        }
+    }
+
     public function testPreferredXlsxAdapter()
     {
         $originalXlsx = SpreadCompat::$preferredXlsxAdapter;

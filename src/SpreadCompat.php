@@ -70,9 +70,26 @@ class SpreadCompat
         return null;
     }
 
+    /**
+     * Check that the dependency behind an adapter is actually available,
+     * so we never fall back to an adapter that cannot work.
+     */
+    private static function isAdapterAvailable(string $name): bool
+    {
+        return match ($name) {
+            self::BARESHEET, self::NATIVE => class_exists(\LeKoala\Baresheet\Spread::class),
+            self::XLSWRITER => extension_loaded('xlswriter'),
+            self::LEAGUE => class_exists(\League\Csv\Reader::class),
+            self::OPEN_SPOUT => class_exists(\OpenSpout\Common\Entity\Row::class),
+            self::PHP_SPREADSHEET => class_exists(\PhpOffice\PhpSpreadsheet\Worksheet\Row::class),
+            self::SIMPLE => class_exists(\Shuchkin\SimpleXLSX::class),
+            default => false,
+        };
+    }
+
     private static function getCsvAdapter(): string
     {
-        if (self::$preferredCsvAdapter !== null) {
+        if (self::$preferredCsvAdapter !== null && self::isAdapterAvailable(self::$preferredCsvAdapter)) {
             return self::$preferredCsvAdapter;
         }
 
@@ -83,7 +100,7 @@ class SpreadCompat
     {
         $preferred = self::$preferredXlsxAdapter ?? self::$preferredXslxAdapter;
 
-        if ($preferred !== null) {
+        if ($preferred !== null && self::isAdapterAvailable($preferred)) {
             return $preferred;
         }
 
@@ -92,7 +109,7 @@ class SpreadCompat
 
     private static function getOdsAdapter(): string
     {
-        if (self::$preferredOdsAdapter !== null) {
+        if (self::$preferredOdsAdapter !== null && self::isAdapterAvailable(self::$preferredOdsAdapter)) {
             return self::$preferredOdsAdapter;
         }
 
