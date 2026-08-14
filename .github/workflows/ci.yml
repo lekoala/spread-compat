@@ -37,6 +37,26 @@ jobs:
       - name: PHPStan
         run: vendor/bin/phpstan analyse src/
 
+  core:
+    name: Core / Baresheet only
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: mbstring, xml, zip
+          coverage: none
+
+      - name: Composer install (no dev)
+        run: composer install --no-dev --no-progress --prefer-dist --optimize-autoloader
+
+      - name: Baresheet-only smoke test
+        run: php bin/smoke-test.php
+
   test:
     name: PHPUnit PHP ${{ matrix.php }} / PhpSpreadsheet ${{ matrix.phpss }} / OpenSpout ${{ matrix.openspout }}
     needs: lint

@@ -8,6 +8,7 @@ use Exception;
 use PHPUnit\Framework\TestCase;
 use LeKoala\SpreadCompat\Xlsx\Simple;
 use LeKoala\SpreadCompat\SpreadCompat;
+use LeKoala\SpreadCompat\Xlsx\Baresheet;
 use LeKoala\SpreadCompat\Xlsx\Native;
 use LeKoala\SpreadCompat\Xlsx\OpenSpout;
 use LeKoala\SpreadCompat\Xlsx\PhpSpreadsheet;
@@ -868,5 +869,49 @@ class SpreadCompatXlsxTest extends TestCase
         $t2 = '45834.614583333';
         self::assertEquals('2025-06-26 14:45:00', SpreadCompat::excelTimeToDate($t));
         self::assertEquals('2025-06-26 14:45:00', SpreadCompat::excelTimeToDate($t2));
+    }
+
+    public function testBaresheetWritesHeadersAndMeta()
+    {
+        $baresheet = new Baresheet();
+        $data = [
+            ['john', 'doe'],
+            ['jane', 'roe'],
+        ];
+        $string = $baresheet->writeString(
+            $data,
+            headers: ['firstname', 'surname'],
+            creator: 'test',
+            title: 'My title',
+            language: 'fr-FR'
+        );
+        self::assertNotEmpty($string);
+
+        $decoded = iterator_to_array($baresheet->readString($string, assoc: true));
+        self::assertEquals('john', $decoded[0]['firstname']);
+        self::assertEquals('jane', $decoded[1]['firstname']);
+
+        $tmpFile = SpreadCompat::stringToTempFile($string);
+        $props = SpreadCompat::excelProperties($tmpFile);
+        self::assertEquals('test', $props['creator']);
+        self::assertEquals('My title', $props['title']);
+        unlink($tmpFile);
+    }
+
+    public function testBaresheetWritesHeadersToFile()
+    {
+        $baresheet = new Baresheet();
+        $data = [
+            ['john', 'doe'],
+            ['jane', 'roe'],
+        ];
+        $tmpFile = SpreadCompat::getTempFilename() . '.xlsx';
+        $baresheet->writeFile($data, $tmpFile, headers: ['firstname', 'surname'], creator: 'test');
+        $decoded = iterator_to_array($baresheet->readFile($tmpFile, assoc: true));
+        self::assertEquals('john', $decoded[0]['firstname']);
+
+        $props = SpreadCompat::excelProperties($tmpFile);
+        self::assertEquals('test', $props['creator']);
+        unlink($tmpFile);
     }
 }

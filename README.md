@@ -70,7 +70,7 @@ This package includes a simple way to leverage output to browser type of functio
 Some adapters allow you to stream directly the response.
 
 ```php
-SpreadCompat::output('myfile.csv');
+SpreadCompat::output($data, 'myfile.csv');
 exit();
 ```
 
@@ -109,9 +109,6 @@ $options->adapter = SpreadCompat::BARESHEET;
 $csvData = SpreadCompat::readString($csv, $options);
 ```
 
-> [!NOTE]
-> `readString()` without an explicit extension guesses csv vs xlsx from the content. Xlsx and ods are both zip archives, so an ods string would be auto-detected as xlsx. Always pass the `extension` option (or `$ext`) when the content might be ods.
-
 ## Security
 
 ### CSV Formula Injection
@@ -140,5 +137,3 @@ Since we can compare our solutions, there is a built in bench script. You can ch
 - [write benchmark](docs/bench-write.md)
 
 For simple imports/exports, it's very clear that using the Baresheet adapter is the fastest overall choice.
-
-Stop wasting cpu cycles right now and please use the most efficient adapter :-)

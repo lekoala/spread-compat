@@ -20,6 +20,7 @@ abstract class OdsAdapter implements SpreadInterface
     public ?string $keywords = null;
     public ?string $description = null;
     public ?string $category = null;
+    public ?string $language = null;
     public bool $stream = false;
     public ?string $tempPath = null;
     /**

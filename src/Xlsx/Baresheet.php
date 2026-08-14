@@ -114,10 +114,7 @@ class Baresheet extends XlsxAdapter
     {
         $this->configure(...$opts);
         $writer = new XlsxWriter();
-        $writer->stream = $this->stream;
-        $writer->tempPath = $this->tempPath;
-        $writer->autofilter = $this->autofilter;
-        $writer->freezePane = $this->freezePane;
+        $this->configureWriter($writer);
         /** @var iterable<array<\DateTimeInterface|float|int|string|\Stringable|null>> $data */
         return $writer->writeFile($data, $filename);
     }
@@ -126,10 +123,7 @@ class Baresheet extends XlsxAdapter
     {
         $this->configure(...$opts);
         $writer = new XlsxWriter();
-        $writer->stream = $this->stream;
-        $writer->tempPath = $this->tempPath;
-        $writer->autofilter = $this->autofilter;
-        $writer->freezePane = $this->freezePane;
+        $this->configureWriter($writer);
         /** @var iterable<array<\DateTimeInterface|float|int|string|\Stringable|null>> $data */
         $writer->output($data, $filename);
     }
@@ -138,12 +132,32 @@ class Baresheet extends XlsxAdapter
     {
         $this->configure(...$opts);
         $writer = new XlsxWriter();
-        $writer->stream = $this->stream;
-        $writer->tempPath = $this->tempPath;
-        $writer->autofilter = $this->autofilter;
-        $writer->freezePane = $this->freezePane;
-        $writer->headers = $this->headers;
+        $this->configureWriter($writer);
         /** @var iterable<array<\DateTimeInterface|float|int|string|\Stringable|null>> $data */
         return $writer->writeString($data);
+    }
+
+    private function configureWriter(XlsxWriter $writer): void
+    {
+        $writer->stream = $this->stream;
+        $writer->tempPath = $this->tempPath;
+        $writer->headers = $this->headers;
+        $writer->autofilter = $this->autofilter;
+        $writer->freezePane = $this->freezePane;
+        $writer->meta = $this->buildMeta();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function buildMeta(): array
+    {
+        $meta = [];
+        foreach (['creator', 'title', 'subject', 'keywords', 'description', 'category', 'language'] as $key) {
+            if ($this->$key !== null) {
+                $meta[$key] = $this->$key;
+            }
+        }
+        return $meta;
     }
 }

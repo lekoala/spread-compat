@@ -6,6 +6,7 @@ namespace LeKoala\SpreadCompat;
 
 use Exception;
 use Generator;
+use LeKoala\SpreadCompat\Common\Options;
 use LeKoala\SpreadCompat\Common\ZipUtils;
 use RuntimeException;
 use ZipArchive;
@@ -152,7 +153,8 @@ class SpreadCompat
      */
     public static function getAdapterFromOpts(array $opts, ?string $ext = null): ?SpreadInterface
     {
-        $name = $opts[0]['adapter'] ?? $opts['adapter'] ?? null;
+        $options = Options::normalize($opts);
+        $name = $options['adapter'] ?? null;
         if ($name === null || !is_string($name)) {
             return null;
         }
@@ -208,21 +210,12 @@ class SpreadCompat
      * Try to determine based on contents
      * Expect csv to be all printable chars
      *
-     * Binary (zip-based) spreadsheet formats cannot be told apart this way: xlsx and ods
-     * are both zip archives, so this always resolves a zip signature to xlsx. Pass an
-     * explicit extension to readString() if you may be reading an ods file.
+     * Delegates to Baresheet, which distinguishes csv, xlsx and ods by inspecting
+     * the raw bytes (zip-based formats are told apart by their mimetype marker).
      */
     public static function getExtensionForContent(string $contents): string
     {
-        //@link https://gist.github.com/leommoore/f9e57ba2aa4bf197ebc5
-        //50 4b 03 04
-        $header = strtoupper(substr(bin2hex($contents), 0, 8));
-        if ($header === '504B0304') {
-            $ext = self::EXT_XLSX;
-        } else {
-            $ext = self::EXT_CSV;
-        }
-        return $ext;
+        return \LeKoala\Baresheet\Spread::getExtensionForContent($contents);
     }
 
     /**
@@ -474,7 +467,8 @@ class SpreadCompat
      */
     protected static function getExtensionFromOpts(array $opts, ?string $fallback = null): ?string
     {
-        $ext = $opts[0]['extension'] ?? $opts['extension'] ?? $fallback;
+        $options = Options::normalize($opts);
+        $ext = $options['extension'] ?? $fallback;
         return is_string($ext) ? $ext : null;
     }
 
@@ -494,11 +488,6 @@ class SpreadCompat
     }
 
     /**
-     * Binary spreadsheet strings require an explicit extension: without one, the extension
-     * is guessed from the content, and both xlsx and ods are zip archives, so an ods string
-     * would be auto-detected as xlsx. Pass $ext (or the `extension` option) whenever the
-     * content might be ods.
-     *
      * @param string $contents
      * @param string|null $ext
      * @param mixed ...$opts
@@ -529,7 +518,7 @@ class SpreadCompat
 
     public static function writeString(iterable $data, ?string $ext = null, ...$opts): string
     {
-        $ext = self::getExtensionFromOpts($opts);
+        $ext = self::getExtensionFromOpts($opts, $ext);
         $adapter = self::getAdapterFromOpts($opts, $ext);
         if (!$adapter && !$ext) {
             throw new Exception("No adapter or extension specified for string");

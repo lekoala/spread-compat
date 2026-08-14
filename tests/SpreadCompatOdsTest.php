@@ -58,4 +58,48 @@ class SpreadCompatOdsTest extends TestCase
         self::assertCount(1, $decoded);
         self::assertEquals('john', $decoded[0]['fname']);
     }
+
+    public function testBaresheetWritesHeadersAndMeta()
+    {
+        $baresheet = new Baresheet();
+        $data = [
+            ['john', 'doe'],
+            ['jane', 'roe'],
+        ];
+        $string = $baresheet->writeString(
+            $data,
+            headers: ['firstname', 'surname'],
+            creator: 'test',
+            title: 'My title'
+        );
+        self::assertNotEmpty($string);
+
+        $decoded = iterator_to_array($baresheet->readString($string, assoc: true));
+        self::assertEquals('john', $decoded[0]['firstname']);
+        self::assertEquals('jane', $decoded[1]['firstname']);
+
+        $tmpFile = SpreadCompat::getTempFilename() . '.ods';
+        file_put_contents($tmpFile, $string);
+        $props = \LeKoala\Baresheet\Spread::getProperties($tmpFile);
+        self::assertEquals('test', $props['meta']['creator']);
+        self::assertEquals('My title', $props['meta']['title']);
+        unlink($tmpFile);
+    }
+
+    public function testBaresheetWritesHeadersToFile()
+    {
+        $baresheet = new Baresheet();
+        $data = [
+            ['john', 'doe'],
+            ['jane', 'roe'],
+        ];
+        $tmpFile = SpreadCompat::getTempFilename() . '.ods';
+        $baresheet->writeFile($data, $tmpFile, headers: ['firstname', 'surname'], creator: 'test');
+        $decoded = iterator_to_array($baresheet->readFile($tmpFile, assoc: true));
+        self::assertEquals('john', $decoded[0]['firstname']);
+
+        $props = \LeKoala\Baresheet\Spread::getProperties($tmpFile);
+        self::assertEquals('test', $props['meta']['creator']);
+        unlink($tmpFile);
+    }
 }

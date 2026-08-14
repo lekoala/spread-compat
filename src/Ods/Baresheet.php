@@ -22,8 +22,7 @@ class Baresheet extends OdsAdapter
     {
         $this->configure(...$opts);
         $writer = new OdsWriter();
-        $writer->stream = $this->stream;
-        $writer->tempPath = $this->tempPath;
+        $this->configureWriter($writer);
         /** @var iterable<array<\DateTimeInterface|float|int|string|\Stringable|null>> $data */
         return $writer->writeFile($data, $filename);
     }
@@ -32,8 +31,7 @@ class Baresheet extends OdsAdapter
     {
         $this->configure(...$opts);
         $writer = new OdsWriter();
-        $writer->stream = $this->stream;
-        $writer->tempPath = $this->tempPath;
+        $this->configureWriter($writer);
         /** @var iterable<array<\DateTimeInterface|float|int|string|\Stringable|null>> $data */
         $writer->output($data, $filename);
     }
@@ -42,10 +40,30 @@ class Baresheet extends OdsAdapter
     {
         $this->configure(...$opts);
         $writer = new OdsWriter();
+        $this->configureWriter($writer);
+        /** @var iterable<array<\DateTimeInterface|float|int|string|\Stringable|null>> $data */
+        return $writer->writeString($data);
+    }
+
+    private function configureWriter(OdsWriter $writer): void
+    {
         $writer->stream = $this->stream;
         $writer->tempPath = $this->tempPath;
         $writer->headers = $this->headers;
-        /** @var iterable<array<\DateTimeInterface|float|int|string|\Stringable|null>> $data */
-        return $writer->writeString($data);
+        $writer->meta = $this->buildMeta();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function buildMeta(): array
+    {
+        $meta = [];
+        foreach (['creator', 'title', 'subject', 'keywords', 'description', 'language'] as $key) {
+            if ($this->$key !== null) {
+                $meta[$key] = $this->$key;
+            }
+        }
+        return $meta;
     }
 }

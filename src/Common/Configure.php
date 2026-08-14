@@ -4,32 +4,16 @@ declare(strict_types=1);
 
 namespace LeKoala\SpreadCompat\Common;
 
-use Exception;
-
 trait Configure
 {
     public function configure(...$opts): void
     {
-        foreach ($opts as $k => $v) {
-            // It's an Options class
-            if ($v instanceof Options) {
-                $this->configure(...get_object_vars($v));
-                return;
-            }
-            // If you passed the array directly instead of ...$opts
-            if (is_numeric($k)) {
-                // Proceed
-                if (is_array($v)) {
-                    $this->configure(...$v);
-                    return;
-                }
-                throw new Exception("Invalid key");
-            }
+        foreach (Options::normalize($opts) as $key => $value) {
             // Ignore invalid properties for this adapter
-            if (!property_exists($this, $k)) {
+            if (!property_exists($this, $key)) {
                 continue;
             }
-            $this->$k = $v;
+            $this->$key = $value;
         }
     }
 }

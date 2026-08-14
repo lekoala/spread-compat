@@ -4,18 +4,20 @@ declare(strict_types=1);
 
 namespace LeKoala\SpreadCompat\Common;
 
-use ArrayAccess;
+use InvalidArgumentException;
 
 /**
- * @implements ArrayAccess<string,mixed>
+ * Options regroup all available options for all adapters. Unsupported options
+ * are ignored by adapters, but the constructor is strict about unknown names.
  */
-class Options implements ArrayAccess
+class Options
 {
     use Configure;
 
     // Common
     public bool $assoc = false;
     public ?string $adapter = null;
+    public ?string $extension = null;
     /**
      * @var string[]
      */
@@ -47,28 +49,63 @@ class Options implements ArrayAccess
 
     public function __construct(...$opts)
     {
-        if (!empty($opts)) {
-            $this->configure(...$opts);
+        if (empty($opts)) {
+            return;
         }
+
+        $normalized = self::normalize($opts);
+        $unknown = array_diff(array_keys($normalized), array_keys(get_object_vars($this)));
+        if ($unknown !== []) {
+            throw new InvalidArgumentException("Unknown option(s): " . implode(', ', $unknown));
+        }
+
+        $this->configure(...$opts);
     }
 
-    public function offsetExists(mixed $offset): bool
+    /**
+     * Flatten variadic options (named arguments, arrays and Options instances)
+     * into a single canonical array.
+     *
+     * @param array<mixed> $opts
+     * @return array<string, mixed>
+     * @throws InvalidArgumentException
+     */
+    public static function normalize(array $opts): array
     {
-        return property_exists($this, $offset);
+        $result = [];
+
+        foreach ($opts as $key => $value) {
+            if ($value instanceof self) {
+                foreach ($value->toArray() as $k => $v) {
+                    $result[$k] = $v;
+                }
+                continue;
+            }
+
+            if (is_int($key)) {
+                if (!is_array($value)) {
+                    throw new InvalidArgumentException('Invalid options');
+                }
+                foreach ($value as $k => $v) {
+                    $result[$k] = $v;
+                }
+                continue;
+            }
+
+            $result[$key] = $value;
+        }
+
+        /** @var array<string, mixed> $result */
+        return $result;
     }
 
-    public function offsetGet(mixed $offset): mixed
+    /**
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
     {
-        return $this->$offset ?? null;
-    }
-
-    public function offsetSet(mixed $offset, mixed $value): void
-    {
-        $this->$offset = $value;
-    }
-
-    public function offsetUnset(mixed $offset): void
-    {
-        $this->$offset = null;
+        /** @var array<string, mixed> $vars */
+        $vars = get_object_vars($this);
+        return $vars;
     }
 }

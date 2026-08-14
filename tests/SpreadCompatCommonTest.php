@@ -74,6 +74,30 @@ class SpreadCompatCommonTest extends TestCase
         self::assertTrue('csv' == SpreadCompat::getExtensionForContent($csv), "Content is: $csv");
         $xlsx = file_get_contents(__DIR__ . '/data/basic.xlsx');
         self::assertTrue('xlsx' == SpreadCompat::getExtensionForContent($xlsx), "Content is: $xlsx");
+        $ods = file_get_contents(__DIR__ . '/data/basic.ods');
+        self::assertTrue('ods' == SpreadCompat::getExtensionForContent($ods), "Content is: $ods");
+    }
+
+    public function testFacadeCanWriteString()
+    {
+        $data = [
+            ['firstname', 'surname', 'email'],
+            ['john', 'doe', 'john.doe@example.com'],
+        ];
+
+        foreach (['csv', 'xlsx', 'ods'] as $ext) {
+            $string = SpreadCompat::writeString($data, $ext);
+            self::assertNotEmpty($string, "writeString for $ext");
+            $decoded = iterator_to_array(SpreadCompat::readString($string, $ext, assoc: true));
+            self::assertCount(1, $decoded, "roundtrip for $ext");
+            self::assertEquals('john', $decoded[0]['firstname'], "roundtrip for $ext");
+        }
+
+        // The extension option is honored as well
+        $string = SpreadCompat::writeString($data, extension: 'xlsx');
+        self::assertNotEmpty($string);
+        $decoded = iterator_to_array(SpreadCompat::readString($string, 'xlsx', assoc: true));
+        self::assertEquals('john', $decoded[0]['firstname']);
     }
 
     public function testCanSpecifyAdapter()
@@ -326,5 +350,45 @@ class SpreadCompatCommonTest extends TestCase
             SpreadCompat::$preferredXlsxAdapter = $originalXlsx;
             SpreadCompat::$preferredXslxAdapter = $originalXslx;
         }
+    }
+
+    public function testOptionsSupportsExtension()
+    {
+        $options = new Options(extension: 'xlsx', adapter: SpreadCompat::BARESHEET);
+        self::assertEquals('xlsx', $options->extension);
+        self::assertEquals(SpreadCompat::BARESHEET, $options->adapter);
+
+        $xlsx = file_get_contents(__DIR__ . '/data/basic.xlsx');
+        $data = iterator_to_array(SpreadCompat::readString($xlsx, null, $options));
+        self::assertNotEmpty($data);
+    }
+
+    public function testOptionsNormalize()
+    {
+        $options = new Options(adapter: SpreadCompat::BARESHEET, extension: 'csv');
+        $normalized = Options::normalize([$options, ['assoc' => true]]);
+        self::assertSame(SpreadCompat::BARESHEET, $normalized['adapter']);
+        self::assertSame('csv', $normalized['extension']);
+        self::assertTrue($normalized['assoc']);
+
+        // Named arguments survive normalization
+        $normalized = Options::normalize(['extension' => 'ods']);
+        self::assertSame('ods', $normalized['extension']);
+    }
+
+    public function testOptionsRejectsUnknownKeys()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        new Options(seperator: ';');
+    }
+
+    public function testCanMixOptionsAndNamedArguments()
+    {
+        $csv = file_get_contents(__DIR__ . '/data/headers.csv');
+        $data = iterator_to_array(
+            SpreadCompat::readString($csv, null, new Options(adapter: SpreadCompat::BARESHEET), assoc: true)
+        );
+        self::assertNotEmpty($data);
+        self::assertEquals('john', $data[0]['firstname']);
     }
 }
