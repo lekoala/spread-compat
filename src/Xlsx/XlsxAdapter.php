@@ -25,6 +25,9 @@ abstract class XlsxAdapter implements SpreadInterface
     public ?string $tempPath = null;
     public ?string $autofilter = null;
     public ?string $freezePane = null;
+    /** @var array<string, string> */
+    public array $columnFormats = [];
+    public bool $forceText = false;
     /**
      * @var string[]
      */

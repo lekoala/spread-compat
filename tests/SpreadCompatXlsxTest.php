@@ -16,6 +16,71 @@ use LeKoala\SpreadCompat\Xlsx\Xlswriter;
 
 class SpreadCompatXlsxTest extends TestCase
 {
+    public function testColumnFormatsPreservePhoneNumbersAsText(): void
+    {
+        $rows = [[null, null, null, null, '+972543912345', '0012121234567', 12.5]];
+        $bytes = SpreadCompat::writeString(
+            $rows,
+            extension: 'xlsx',
+            columnFormats: ['E' => '@', 'F' => '@', 'G' => '0.00']
+        );
+
+        $file = SpreadCompat::stringToTempFile($bytes);
+        try {
+            $zip = new \ZipArchive();
+            self::assertTrue($zip->open($file));
+            $sheet = $zip->getFromName('xl/worksheets/sheet1.xml');
+            $styles = $zip->getFromName('xl/styles.xml');
+            $zip->close();
+            self::assertMatchesRegularExpression('/<c r="E1" t="inlineStr" s="\d+">.*?\+972543912345/s', $sheet);
+            self::assertMatchesRegularExpression('/<c r="F1" t="inlineStr" s="\d+">.*?0012121234567/s', $sheet);
+            self::assertStringContainsString('formatCode="0.00"', $styles);
+            self::assertMatchesRegularExpression('/<c r="G1" t="n" s="\d+"><v>12.5<\/v>/', $sheet);
+            self::assertSame($rows[0][4], iterator_to_array(SpreadCompat::readString($bytes, 'xlsx'))[0][4]);
+        } finally {
+            unlink($file);
+        }
+    }
+
+    public function testColumnFormatsWorkWithPhpSpreadsheet(): void
+    {
+        $bytes = SpreadCompat::writeString(
+            [['+972543912345', 12.5]],
+            extension: 'xlsx',
+            adapter: SpreadCompat::PHP_SPREADSHEET,
+            columnFormats: ['A' => '@', 'B' => '0.00']
+        );
+        $file = SpreadCompat::stringToTempFile($bytes);
+        try {
+            $book = (new \PhpOffice\PhpSpreadsheet\Reader\Xlsx())->load($file);
+            $sheet = $book->getActiveSheet();
+            self::assertSame('+972543912345', $sheet->getCell('A1')->getValue());
+            self::assertSame('s', $sheet->getCell('A1')->getDataType());
+            self::assertSame('@', $sheet->getStyle('A1')->getNumberFormat()->getFormatCode());
+            self::assertSame('0.00', $sheet->getStyle('B1')->getNumberFormat()->getFormatCode());
+        } finally {
+            unlink($file);
+        }
+    }
+
+    public function testOutputAcceptsColumnFormats(): void
+    {
+        ob_start();
+        try {
+            SpreadCompat::output(
+                [['+972543912345']],
+                'contacts',
+                extension: 'xlsx',
+                columnFormats: ['A' => '@']
+            );
+            $bytes = ob_get_contents();
+        } finally {
+            ob_end_clean();
+        }
+        self::assertIsString($bytes);
+        self::assertSame('+972543912345', iterator_to_array(SpreadCompat::readString($bytes, 'xlsx'))[0][0]);
+    }
+
     public function testFacadeCanReadXlsx()
     {
         $data = iterator_to_array(SpreadCompat::read(__DIR__ . '/data/basic.xlsx'));

@@ -60,6 +60,7 @@ class Baresheet extends OdsAdapter implements StreamWriterInterface
         $writer->stream = $this->stream;
         $writer->tempPath = $this->tempPath;
         $writer->headers = $this->headers;
+        $writer->forceText = $this->forceText;
         $writer->meta = $this->buildMeta();
     }
 

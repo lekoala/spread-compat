@@ -154,6 +154,8 @@ class Baresheet extends XlsxAdapter implements StreamWriterInterface
         $writer->headers = $this->headers;
         $writer->autofilter = $this->autofilter;
         $writer->freezePane = $this->freezePane;
+        $writer->columnFormats = $this->columnFormats;
+        $writer->forceText = $this->forceText;
         $writer->meta = $this->buildMeta();
     }
 

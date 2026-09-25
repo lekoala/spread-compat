@@ -74,6 +74,29 @@ SpreadCompat::output($data, 'myfile.csv');
 exit();
 ```
 
+For XLSX exports, `columnFormats` accepts Excel column letters and number format codes.
+Use `@` for text columns such as phone numbers: numeric-looking strings are written as
+text cells, preserving a leading `+` or zero. This option is supported by the default
+Baresheet adapter and PhpSpreadsheet. Baresheet applies the formats while writing,
+so `output()` can still stream the XLSX.
+
+```php
+SpreadCompat::output(
+    $data,
+    'contacts',
+    extension: 'xlsx',
+    columnFormats: ['E' => '@', 'F' => '@', 'G' => '0.00']
+);
+```
+
+With the Baresheet adapter, `forceText: true` writes every non-empty XLSX or ODS
+value as spreadsheet text, including numbers, booleans, dates and times. Use it
+when the columns needing text cannot be identified in advance:
+
+```php
+SpreadCompat::output($data, 'contacts', extension: 'xlsx', forceText: true);
+```
+
 ## Streaming
 
 Reading and writing already streams row by row: read methods return a `Generator` and write

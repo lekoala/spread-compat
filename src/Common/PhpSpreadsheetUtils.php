@@ -13,6 +13,12 @@ use PhpOffice\PhpSpreadsheet\Writer\BaseWriter;
 
 trait PhpSpreadsheetUtils
 {
+    /** @return array<string, string> */
+    protected function getColumnFormats(): array
+    {
+        return [];
+    }
+
     protected function getReaderClass(): string
     {
         throw new Exception("Method not implemented");
@@ -93,6 +99,33 @@ trait PhpSpreadsheetUtils
         }
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->fromArray($source);
+        if ($this->getColumnFormats() !== []) {
+            foreach ($this->getColumnFormats() as $column => $format) {
+                $column = strtoupper($column);
+                if (!preg_match('/^[A-Z]{1,3}$/', $column) || $format === '') {
+                    throw new \InvalidArgumentException('Invalid Excel column format');
+                }
+                $sheet->getStyle($column . ':' . $column)->getNumberFormat()->setFormatCode($format);
+                if ($format === '@') {
+                    $index = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($column) - 1;
+                    foreach ($source as $rowIndex => $row) {
+                        if (!is_array($row)) {
+                            continue;
+                        }
+                        $values = array_values($row);
+                        if (
+                            isset($values[$index])
+                            && (is_scalar($values[$index]) || $values[$index] instanceof \Stringable)
+                        ) {
+                            $sheet->getCell($column . ($rowIndex + 1))->setValueExplicit(
+                                (string) $values[$index],
+                                \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING
+                            );
+                        }
+                    }
+                }
+            }
+        }
         if ($this->autofilter) {
             $sheet->setAutoFilter($this->autofilter);
         }

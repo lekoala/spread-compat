@@ -12,6 +12,12 @@ class PhpSpreadsheet extends XlsxAdapter
 {
     use PhpSpreadsheetUtils;
 
+    /** @return array<string, string> */
+    protected function getColumnFormats(): array
+    {
+        return $this->columnFormats;
+    }
+
     protected function getReaderClass(): string
     {
         return ReaderXlsx::class;

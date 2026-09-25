@@ -13,6 +13,35 @@ use PHPUnit\Framework\TestCase;
 
 class SpreadCompatCommonTest extends TestCase
 {
+    public static function forceTextFormats(): array
+    {
+        return [
+            'xlsx' => ['xlsx', 'xl/worksheets/sheet1.xml', 't="inlineStr"'],
+            'ods' => ['ods', 'content.xml', 'office:value-type="string"'],
+        ];
+    }
+
+    #[DataProvider('forceTextFormats')]
+    public function testForceTextPassesThroughToBaresheet(string $ext, string $entry, string $marker): void
+    {
+        $values = ['+972543912345', true, new \DateTimeImmutable('2026-09-25 14:30:15'), 12.5];
+        $bytes = SpreadCompat::writeString([$values], extension: $ext, forceText: true);
+        $filename = SpreadCompat::stringToTempFile($bytes);
+        try {
+            $zip = new \ZipArchive();
+            self::assertTrue($zip->open($filename));
+            $xml = $zip->getFromName($entry);
+            $zip->close();
+            self::assertSame(4, substr_count($xml, $marker));
+            self::assertSame(
+                ['+972543912345', '1', '2026-09-25 14:30:15', '12.5'],
+                iterator_to_array(SpreadCompat::readString($bytes, $ext))[0]
+            );
+        } finally {
+            unlink($filename);
+        }
+    }
+
     public function testCanUseOptions()
     {
         $options = new Options();

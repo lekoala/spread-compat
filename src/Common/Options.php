@@ -44,6 +44,9 @@ class Options
     public ?string $description = null;
     public ?string $category = null;
     public ?string $language = null;
+    /** @var array<string, string> Excel column letters mapped to number format codes. */
+    public array $columnFormats = [];
+    public bool $forceText = false;
 
     // Excel only
     /**
